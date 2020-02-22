@@ -9,7 +9,10 @@ interface Feed<out T>: Preety {
 }
 typealias AllFeed = Feed<*>
 
-fun <IN> Feed<IN>.consumeOrNull() = try { consume() } catch (_: Feed.End) {null}
+abstract class PreetyFeed<T>: PreetyAny(), Feed<T>
+
+//// == consume & takeWhile ==
+fun <IN> Feed<IN>.consumeOrNull() = try { consume() } catch (_: Feed.End) { null }
 fun <IN> Feed<IN>.consumeIf(predicate: Predicate<IN>): IN?
   = peek.takeIf(predicate)?.let { consumeOrNull() }
 
@@ -18,14 +21,11 @@ fun <IN> Feed<IN>.takeWhile(predicate: Predicate<IN>): Sequence<IN>
 fun <IN> Feed<IN>.takeWhileNotEnd(predicate: Predicate<IN>): Sequence<IN>
   = sequence { while (true) yield(consumeIf(predicate) ?: break) }
 
+// NOTES ABOUT Feed:
 fun <IN> Feed<IN>.asSequence(): Sequence<IN>
   = sequence { while (true) yield(consumeOrNull() ?: break) }
 fun <IN> Feed<IN>.asIterable() = asSequence().asIterable()
 fun <IN> Feed<IN>.toList() = asIterable().toList()
-
-abstract class PreetyFeed<T>: PreetyAny(), Feed<T>
-
-// NOTES ABOUT Feed:
 // - Feed cannot be constructed using empty input
 fun Feed<Char>.readText() = asIterable().joinToString("")
 // - Feed.peek will yield last item *again* when EOS reached
@@ -36,7 +36,7 @@ fun <R> AllFeed.catchError(op: Producer<R>): R? = try { op() } catch (e: Excepti
 
 //// == SliceFeed & StreamFeed ==
 // SliceFeed { position, viewport }
-// StreamFeed { bufferIterator, convert, nextOne }
+// StreamFeed<T, BUF, STREAM> { bufferIterator, convert, nextOne }
 //   - IteratorFeed
 //   - ReaderFeed
 
@@ -47,6 +47,7 @@ open class SliceFeed<T>(private val slice: Slice<T>): PreetyFeed<T>() {
     catch (_: IndexOutOfBoundsException) { slice[slice.lastIndex] }
   override fun consume() = try { slice[position++] }
     catch (_: IndexOutOfBoundsException) { --position; throw Feed.End() }
+
   override fun toPreetyDoc(): PP = "Slice".preety() + listOf(peek.rawPreety(), viewport(slice)).joinText("...").surroundText(parens)
   protected open fun viewport(slice: Slice<T>): PP
     = (position.inbound()..(position+10).inbound()).map(slice::get)
@@ -57,10 +58,12 @@ open class SliceFeed<T>(private val slice: Slice<T>): PreetyFeed<T>() {
 abstract class StreamFeed<T, BUF, STREAM>(private val stream: STREAM): PreetyFeed<T>() {
   protected abstract fun bufferIterator(stream: STREAM): Iterator<BUF>
   protected abstract fun convert(buffer: BUF): T
+
   private val iterator = bufferIterator(stream)
   protected var nextOne: BUF = try { iterator.next() }
-    catch (_: NoSuchElementException) { require(false) {"empty input"}; impossible() }
+    catch (_: NoSuchElementException) { throw IllegalArgumentException("empty input") }
   private var tailConsumed = false
+
   override val peek get() = convert(nextOne)
   override fun consume() = peek.also {
     if (iterator.hasNext()) nextOne = iterator.next()

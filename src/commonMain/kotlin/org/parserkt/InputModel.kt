@@ -12,15 +12,16 @@ typealias ErrorMessager = ProducerOn<AllFeed, ErrorMessage>
 //// == Abstract ==
 // SourceLocated { sourceLoc: SourceLocation }
 // ParseError(feed, message)
-// Feed.tag: PP?; Feed.error(message)
+// ext Feed { sourceLoc?, tag?; error(message) }
 
 interface SourceLocated { val sourceLoc: SourceLocation }
 data class SourceLocation(val file: String, var line: Cnt, var column: Cnt, var position: Cnt): Preety {
   constructor(file: String): this(file,1,0, 0) // since only consumed items adds errors, column are counted from 0
   val tag get() = listOf(file, line, column).preety().joinText(":")
+  fun clone() = copy(file = file, line = line, column = column, position = position)
+
   override fun toPreetyDoc() = tag + ("#".preety() + position)
   override fun toString() = toPreetyDoc().toString()
-  fun clone() = copy(file = file, line = line, column = column, position = position)
 }
 
 open class ParseError(val feed: AllFeed, message: ErrorMessage): Error(message.toString())
@@ -31,28 +32,24 @@ fun AllFeed.error(message: ErrorMessage) = (this as? ErrorListener)?.onError?.in
 
 //// == Input & CharInput ==
 // Input { onItem, onError }
-// CharInput (STDIN) { isCRLF, eol }
+// CharInput (STDIN) { isCRLF, eol; OnItem }
 
 open class Input<T>(protected val feed: Feed<T>): PreetyFeed<T>(), ErrorListener {
   protected open fun onItem(item: T) {}
   override var onError: ConsumerOn<AllFeed, ErrorMessage> = { message ->
-    val inputDesc = this.tag ?: (this as? Filters<*>)?.parent?.tag ?: "parse fail near `$peek'"
+    val inputDesc = this.tag ?: (this as? FilterInput<*>)?.parent?.tag ?: "parse fail near `$peek'"
     throw ParseError(this, "$inputDesc: $message")
   }
+
   override val peek get() = feed.peek
   override fun consume() = feed.consume().also(::onItem)
   override fun toPreetyDoc(): PP = "Input".preety() + ":" + feed.toPreetyDoc()
-
-  class Filters<T>(val parent: AllFeed, feed: Feed<T>): Input<T>(feed) {
-    init { onError = (parent as? ErrorListener)?.onError ?: onError }
-    override fun toPreetyDoc() = parent.toPreetyDoc()
-  }
 }
 
 open class CharInput(feed: Feed<Char>, file: String): Input<Char>(feed), SourceLocated {
   protected open val isCRLF = false
   protected open val eol: Char = '\n'
-  override val sourceLoc = SourceLocation(file)
+
   override fun onItem(item: Char) {
     if (isCRLF && item == '\r' && peek == '\n') when (eol) {
       '\r' -> { consume(); newLine() }
@@ -64,12 +61,19 @@ open class CharInput(feed: Feed<Char>, file: String): Input<Char>(feed), SourceL
     ++sourceLoc.position
   }
   private fun newLine() { ++sourceLoc.line; sourceLoc.column = 0 }
+
+  override val sourceLoc = SourceLocation(file)
   override fun toPreetyDoc(): PP = super.toPreetyDoc() + ":" + sourceLoc.preety()
 
   companion object Companion
   inner class OnItem(private val onItem: Consumer<Char>): CharInput(feed, sourceLoc.file) {
     override fun onItem(item: Char) { super.onItem(item); onItem.invoke(item) }
   }
+}
+
+class FilterInput<T>(val parent: AllFeed, feed: Feed<T>): Input<T>(feed) {
+  init { onError = (parent as? ErrorListener)?.onError ?: onError }
+  override fun toPreetyDoc() = parent.toPreetyDoc()
 }
 
 //// == Abstract ==

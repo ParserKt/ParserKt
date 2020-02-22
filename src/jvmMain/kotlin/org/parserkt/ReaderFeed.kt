@@ -5,10 +5,10 @@ import java.io.Reader
 import java.io.InputStreamReader
 
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 
 class ReaderFeed(reader: Reader): StreamFeed<Char, Int, Reader>(reader) {
-  constructor(s: InputStream, charset: Charset = StandardCharsets.UTF_8): this(InputStreamReader(s, charset))
+  constructor(s: InputStream, charset: Charset = UTF_8): this(InputStreamReader(s, charset))
   override fun bufferIterator(stream: Reader) = object: Iterator<Int> {
     override fun hasNext() = nextOne != (-1) //always true
     override fun next() = stream.read()
