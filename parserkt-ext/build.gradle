@@ -1,0 +1,14 @@
+apply plugin: "kotlin-multiplatform"
+
+kotlin {
+  jvm(); js()
+}
+
+dependencies {
+  commonMainApi kotlin("stdlib-common")
+  jvmMainApi kotlin("stdlib")
+  jsMainApi kotlin("stdlib-js")
+
+  commonMainImplementation(rootProject)
+  commonMainImplementation(rootProject.project("parserkt-util"))
+}
