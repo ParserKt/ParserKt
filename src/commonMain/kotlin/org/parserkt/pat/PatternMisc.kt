@@ -2,13 +2,14 @@ package org.parserkt.pat
 
 import org.parserkt.*
 import org.parserkt.util.*
-import org.parserkt.pat.*
 
 // File: pat/PatternMisc
-//// == Error Handling (addErrorList, clamWhile, clam) ==
+// Error-handling & Stated-Feed
 
+//// == Error Handling (addErrorList, clamWhile, clam) ==
 // Input.addErrorList(): Pair<List<BoundError>, Input>
 // CharInput.addErrorList(): Pair<List<LocatedError>, CharInput>
+
 typealias BoundError<IN> = Pair<IN, ErrorMessage>
 fun <IN> Input<IN>.addErrorList(): Pair<List<BoundError<IN>>, Input<IN>> {
   val errorList: MutableList<BoundError<IN>> = mutableListOf()
@@ -63,8 +64,8 @@ fun <ST> CharInput.withState(value: ST) = StatedCharInput(this, sourceLoc.file, 
 inline fun <reified ST> AllFeed.stateAs(): ST? = (this as? State<ST>)?.state
 
 // PatternAlsoDo
-// SatisfyAlsoDo, SatisfyEqualAlsoDo
-// fun Pattern.alsoDo(op); ...
+// SatisfyAlsoDo, SatisfyEqualToAlsoDo
+// Pattern.alsoDo(op), ...
 typealias AlsoDo<IN> = ConsumerOn<AllFeed, IN>
 
 class PatternAlsoDo<IN, T>(self: Pattern<IN, T>, val op: AlsoDo<T>): PatternWrapper<IN, T>(self) {
@@ -74,10 +75,10 @@ class PatternAlsoDo<IN, T>(self: Pattern<IN, T>, val op: AlsoDo<T>): PatternWrap
 open class SatisfyAlsoDo<IN>(self: SatisfyPattern<IN>, val op: AlsoDo<IN>): SatisfyPatternBy<IN>(self) {
   override fun read(s: Feed<IN>): IN? = self.read(s)?.also { s.op(it) }
 }
-class SatisfyEqualAlsoDo<IN>(override val self: SatisfyEqualTo<IN>, op: AlsoDo<IN>): SatisfyAlsoDo<IN>(self, op), MonoConstantPattern<IN> {
+class SatisfyEqualToAlsoDo<IN>(override val self: SatisfyEqualTo<IN>, op: AlsoDo<IN>): SatisfyAlsoDo<IN>(self, op), MonoConstantPattern<IN> {
   override val constant get() = self.constant
 }
 
 fun <IN, T> Pattern<IN, T>.alsoDo(op: AlsoDo<T>) = PatternAlsoDo(this, op)
 fun <IN> SatisfyPattern<IN>.alsoDo(op: AlsoDo<IN>) = SatisfyAlsoDo(this, op)
-fun <IN> SatisfyEqualTo<IN>.alsoDo(op: AlsoDo<IN>) = SatisfyEqualAlsoDo(this, op)
+fun <IN> SatisfyEqualTo<IN>.alsoDo(op: AlsoDo<IN>) = SatisfyEqualToAlsoDo(this, op)

@@ -6,9 +6,15 @@ import org.parserkt.util.*
 // File: pat/WrapperCCDP
 // "CCDP"
 // Convert(item, transform: ConvertAs<T1, T>) constructor(item, to={unsupported})
+//   + ConvertAs.Box<T>(v: T)
+//   + ext Pattern { typed((T)->BOX), force() }
 // Contextual(head, body)
 // Deferred(item: Producer<Pattern<IN, R>>)
 // Piped(item, op)
+
+// Tuple patterns: flatten()
+//   + merge first/second (op)
+//   + discard first/second ()
 
 data class ConvertAs<T1, T>(val from: (T) -> T1, val to: (T1) -> T?) {
   interface Box<T> { val v: T }
@@ -26,6 +32,7 @@ class Convert<IN, T, T1>(item: Pattern<IN, T>, val transform: ConvertAs<T1, T>):
 }
 infix fun <IN, T, BOX: ConvertAs.Box<T>> Pattern<IN, T>.typed(type: (T) -> BOX) = Convert(this, type, ConvertAs.Box<T>::v)
 fun <IN, T:T1, T1> Pattern<IN, T>.force() = @Suppress("unchecked_cast") Convert(this, { it as T1 }, { it as T })
+
 
 class Contextual<IN, HEAD, BODY>(val head: Pattern<IN, HEAD>, val body: (HEAD) -> Pattern<IN, BODY>): PreetyPattern<IN, Tuple2<HEAD, BODY>>() {
   override fun read(s: Feed<IN>): Tuple2<HEAD, BODY>? {

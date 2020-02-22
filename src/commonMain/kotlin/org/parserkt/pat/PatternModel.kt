@@ -7,7 +7,7 @@ import org.parserkt.util.*
 inline val notParsed: Nothing? get() = null
 typealias Output<T> = Consumer<T>
 
-//// "POPCorn" (Pattern, OptionalPattern, PatternWrapper, ConstantPattern)
+//// "POPCorn" (Pattern, Optional~, ~Wrapper, Constant~)
 // Pattern { read(Feed), show(Output, value) }
 // val notParsed: Nothing? = null
 
@@ -103,7 +103,7 @@ inline operator fun <reified IN, T> PatternWrapper<IN, T>.not() = wrap(!(item as
 @Suppress("UNCHECKED_CAST")
 inline fun <reified IN, T> PatternWrapper<IN, T>.clam(noinline messager: ErrorMessager) = wrap((item as ConvertPatternWrapper<IN, IN, T>).clam(messager))
 
-//// == Constant Pattern ==
+//// == Constant Pattern (toConstant) ==
 class PatternToConstant<IN, T>(self: Pattern<IN, T>, override val constant: T): Pattern<IN, T> by self, ConstantPattern<IN, T>
 class SatisfyToConstant<IN>(self: SatisfyPattern<IN>, override val constant: IN): SatisfyPatternBy<IN>(self), MonoConstantPattern<IN>
 

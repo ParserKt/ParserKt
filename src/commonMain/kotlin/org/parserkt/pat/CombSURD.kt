@@ -68,6 +68,7 @@ open class Until<IN, T, R>(val terminate: Pattern<IN, *>, fold: Fold<T, R>, item
 internal fun <IN> Feed<IN>.singleFeed() = FilterInput(this, SingleFeed(peek))
 internal fun <IN, T> Pattern<IN, T>.testPeek(s: Feed<IN>) = read(s.singleFeed()) != notParsed
 
+
 open class Repeat<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>): FoldPattern<IN, T, R>(fold, item) {
   override fun read(s: Feed<IN>): R? {
     val reducer = fold.reducer()
