@@ -16,9 +16,9 @@ kotlin {
 }
 
 dependencies {
-  commonMainApi kotlin("stdlib-common")
-  jvmMainApi kotlin("stdlib")
-  jsMainApi kotlin("stdlib-js")
+  commonMainImplementation kotlin("stdlib-common")
+  jvmMainImplementation kotlin("stdlib")
+  jsMainImplementation kotlin("stdlib-js")
 
   commonTestImplementation kotlin("test-common")
   commonTestImplementation kotlin("test-annotations-common")
@@ -27,7 +27,7 @@ dependencies {
   jsTestImplementation kotlin("test-js")
 }
 
-//// == Two Child Lib ==
+//// == Utilities sub-library ==
 dependencies {
   commonMainImplementation project("parserkt-util")
 }

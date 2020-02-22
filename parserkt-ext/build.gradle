@@ -5,9 +5,9 @@ kotlin {
 }
 
 dependencies {
-  commonMainApi kotlin("stdlib-common")
-  jvmMainApi kotlin("stdlib")
-  jsMainApi kotlin("stdlib-js")
+  commonMainImplementation kotlin("stdlib-common")
+  jvmMainImplementation kotlin("stdlib")
+  jsMainImplementation kotlin("stdlib-js")
 
   commonMainImplementation(rootProject)
   commonMainImplementation(rootProject.project("parserkt-util"))
