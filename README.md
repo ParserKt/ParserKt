@@ -1,3 +1,3 @@
 # ParserKt
 
-Naive one-pass recurse descent parser framework for Kotlin
+Naive one-pass recursive descent parser framework for Kotlin
