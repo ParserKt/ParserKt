@@ -10,7 +10,7 @@ interface Fold<in T, out R> {
 }
 
 /** Fold of [makeBase] and [onAccept] */
-abstract class EffectFold<T, R: R0, R0>: Fold<T, R0> {
+abstract class EffectFold<T, R, R0>: Fold<T, R0> where R: R0 {
   protected abstract fun makeBase(): R
   protected abstract fun onAccept(base: R, value: T)
   override fun reducer() = object: Reducer<T, R0> {
@@ -45,6 +45,13 @@ typealias InfixJoin<T> = (T, T) -> T
 // ConvertFold { initial, join, convert }
 // JoinFold(initial, append)
 
+fun <T, R> Iterable<T>.fold(fold: Fold<T, R>): R {
+  val reducer = fold.reducer()
+  forEach(reducer::accept)
+  return reducer.finish()
+}
+
+//// == asList & asString ==
 fun <T> asList() = object: EffectFold<T, MutableList<T>, List<T>>() {
   override fun makeBase(): MutableList<T> = mutableListOf()
   override fun onAccept(base: MutableList<T>, value: T) { base.add(value) }
@@ -54,15 +61,10 @@ abstract class  AsStringBuild<T>: ConvertFold<T, StringBuilder, String>() {
   override val initial get() = StringBuilder()
   override fun convert(base: StringBuilder) = base.toString()
 }
+
 fun asString() = object: AsStringBuild<Char>() {
   override fun join(base: StringBuilder, value: Char) = base.append(value)
 }
 fun joinAsString() = object: AsStringBuild<String>() {
   override fun join(base: StringBuilder, value: String) = base.append(value)
-}
-
-fun <T, R> Iterable<T>.fold(fold: Fold<T, R>): R {
-  val reducer = fold.reducer()
-  forEach(reducer::accept)
-  return reducer.finish()
 }

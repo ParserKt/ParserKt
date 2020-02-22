@@ -13,7 +13,8 @@ val Sized.isNotEmpty get() = !isEmpty
 // Sized { size } (lastIndex, indices, isEmpty)
 // Slice: Sized { get }
 //   Instance: Array<E>, List<E>, CharSequence
-// Tuple2, Tuple (tupleOf, emptyTuple)
+// Tuple2, Tuple3
+// Tuple (tupleOf, emptyTuple)
 //   TypedTuple (IntTuple..., tupleOf(::IntTuple, 1, 2) )
 //   DynamicTuple (AnyTuple, anyTupleOf, getAs<T>, indexAs<T>)
 

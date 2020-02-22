@@ -7,7 +7,6 @@ open class Trie<K, V>(var value: V?) { constructor(): this(null)
   operator fun get(key: Iterable<K>): V? = getPath(key).value
   open operator fun set(key: Iterable<K>, value: V) { getOrCreatePath(key).value = value }
   operator fun contains(key: Iterable<K>) = try { this[key] != null } catch (_: NoSuchElementException) { false }
-  fun toMap() = collectKeys().toMap { k -> k to this[k]!! }
 
   fun getPath(key: Iterable<K>): Trie<K, V> {
     return key.fold(initial = this) { point, k -> point.routes[k] ?: errorNoPath(key, k) }
@@ -28,6 +27,7 @@ open class Trie<K, V>(var value: V?) { constructor(): this(null)
     val msg = "${key.joinToString("/")} @$k"
     throw NoSuchElementException(msg)
   }
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     return if (other !is Trie<*, *>) false
@@ -43,6 +43,8 @@ open class Trie<K, V>(var value: V?) { constructor(): this(null)
 }
 
 //// == Abstract ==
+fun <K, V> Trie<K, V>.toMap() = collectKeys().toMap { k -> k to this[k]!! }
+
 operator fun <V> Trie<Char, V>.get(index: CharSequence) = this[index.asIterable()]
 operator fun <V> Trie<Char, V>.set(index: CharSequence, value: V) { this[index.asIterable()] = value }
 operator fun <V> Trie<Char, V>.contains(index: CharSequence) = index.asIterable() in this
@@ -54,8 +56,10 @@ fun <V> Trie<Char, V>.mergeStrings(vararg kvs: Pair<CharSequence, V>) {
   for ((k, v) in kvs) this[k] = v
 }
 
-fun <K, V> Trie<K, V>.getOrCreatePaths(key: Iterable<K>, layer: (K) -> List<K>): List<Trie<K, V>> = key.fold(listOf(this)) { points, k ->
-  points.flatMap { point ->
-    layer(k).map { point.routes.getOrPut(it, ::Trie) }
+//// == Helper for funs like setNocase ==
+fun <K, V> Trie<K, V>.getOrCreatePaths(key: Iterable<K>, layer: (K) -> List<K>): List<Trie<K, V>>
+  = key.fold(listOf(this)) { points, k ->
+    points.flatMap { point ->
+      layer(k).map { point.routes.getOrPut(it, ::Trie) }
+    }
   }
-}

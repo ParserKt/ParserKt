@@ -1,6 +1,6 @@
 package org.parserkt.util
 
-// File: util/AnyValue&Rec
+// File: util/AnyBy&RecDetect
 interface Eq {
   override fun equals(other: Any?): Boolean
   override fun hashCode(): Int

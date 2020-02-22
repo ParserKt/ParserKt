@@ -3,15 +3,19 @@ package org.parserkt.util
 // File: util/TextPreety
 interface Preety {
   fun toPreetyDoc(): Doc
+
+  interface DocWrapper { val item: Doc }
+  interface DocsWrapper { val items: List<Doc> }
   sealed class Doc {
     object Null: Doc()
     object None: Doc()
     data class Text(val obj: Any): Doc()
       { override fun toString() = super.toString() }
-    data class SurroundBy(val lr: MonoPair<Doc>, override val sub: Doc): Doc(), DocWrapper
+    data class SurroundBy(val lr: MonoPair<Doc>, override val item: Doc): Doc(), DocWrapper
       { override fun toString() = super.toString() }
-    data class JoinBy(val sep: Doc, override val subs: List<Doc>): Doc(), DocsWrapper
+    data class JoinBy(val sep: Doc, override val items: List<Doc>): Doc(), DocsWrapper
       { override fun toString() = super.toString() }
+
     fun <R> visitBy(visitor: Visitor<R>): R = when (this) {
       is Null -> visitor.see(this)
       is None -> visitor.see(this)
@@ -26,18 +30,17 @@ interface Preety {
         fun see(t: Doc.JoinBy): R
         fun see(t: Doc.SurroundBy): R
     }
+
     override fun toString() = visitBy(DocShow)
     private object DocShow: Visitor<String> {
       override fun see(t: Doc.Null) = "null"
       override fun see(t: Doc.None) = ""
       override fun see(t: Doc.Text) = t.obj.toString()
-      override fun see(t: Doc.JoinBy) = t.subs.joinToString(t.sep.show(), transform = { it.show() })
-      override fun see(t: Doc.SurroundBy) = "${t.lr.first.show()}${t.sub.show()}${t.lr.second.show()}"
+      override fun see(t: Doc.JoinBy) = t.items.joinToString(t.sep.show(), transform = { it.show() })
+      override fun see(t: Doc.SurroundBy) = "${t.lr.first.show()}${t.item.show()}${t.lr.second.show()}"
       private fun Doc.show() = visitBy(DocShow)
     }
   }
-  interface DocWrapper { val sub: Doc }
-  interface DocsWrapper { val subs: List<Doc> }
 }
 
 abstract class PreetyAny: Preety {
@@ -59,6 +62,9 @@ fun PP.surroundText(lr: MonoPair<String>) = surround(lr.map(Any?::preety))
 fun List<PP>.joinText(sep: String) = join(sep.preety())
 operator fun PP.plus(other: Any?) = this + other.preety()
 
+//// == Freuquently Used ==
+fun List<PP>.colonParens() = joinText(":").surroundText(parens)
+
 infix fun String.paired(other: String) = MonoPair(this, other)
 fun String.monoPaired() = this paired this
 val parens = "(" paired ")"
@@ -67,12 +73,11 @@ val braces = "{" paired "}"
 val quotes = "'" paired "'"
 val dquotes = "\"" paired "\""
 
-fun List<PP>.colonParens() = joinText(":").surroundText(parens)
-
 //// == Raw Strings ==
-fun CharSequence.prefixTranslate(map: Map<Char, Char>, prefix: String) = fold(StringBuilder()) { acc, char ->
-  map[char]?.let { acc.append(prefix).append(it) } ?: acc.append(char)
-}.toString()
+fun CharSequence.prefixTranslate(map: Map<Char, Char>, prefix: String)
+  = fold(StringBuilder()) { acc, char ->
+    map[char]?.let { acc.append(prefix).append(it) } ?: acc.append(char)
+  }.toString()
 
 /** `\"\'\t\b\n\r\$\\` */
 internal val KOTLIN_ESCAPE = mapOf(
