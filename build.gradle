@@ -1,33 +1,28 @@
-group "org.parserkt"
-version "0.9"
-
-buildscript {
-  ext {
-    kotlin = "org.jetbrains.kotlin:kotlin"
-    kotlinVersion = "1.3.41"
-  }
-  repositories { jcenter() }
-  dependencies {
-    classpath("$kotlin-gradle-plugin:$kotlinVersion")
-  }
+plugins {
+  id "kotlin-multiplatform" version "1.3.61"
 }
+
 allprojects {
+  group "org.parserkt"
+  version "0.9"
+
   repositories { jcenter() }
 }
-apply plugin: "kotlin-multiplatform"
 
+//// == Kotlin & Libs ==
 kotlin {
   jvm(); js()
 }
 
 dependencies {
-  commonMainApi("$kotlin-stdlib-common:$kotlinVersion")
-  jvmMainApi("$kotlin-stdlib:$kotlinVersion")
-  jsMainApi("$kotlin-stdlib-js:$kotlinVersion")
+  def kotlin = { name -> return "org.jetbrains.kotlin:kotlin-$name:1.3.61" }
+  commonMainApi kotlin("stdlib-common")
+  jvmMainApi kotlin("stdlib")
+  jsMainApi kotlin("stdlib-js")
 
-  commonTestImplementation("$kotlin-test-common:$kotlinVersion")
-  commonTestImplementation("$kotlin-test-annotations-common:$kotlinVersion")
+  commonTestImplementation kotlin("test-common")
+  commonTestImplementation kotlin("test-annotations-common")
 
-  jvmTestImplementation("$kotlin-test-junit:$kotlinVersion")
-  jsTestImplementation("$kotlin-test-js:$kotlinVersion")
+  jvmTestImplementation kotlin("test-junit")
+  jsTestImplementation kotlin("test-js")
 }

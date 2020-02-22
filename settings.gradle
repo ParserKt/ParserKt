@@ -1,1 +1,11 @@
+pluginManagement {
+  repositories { jcenter() }
+  def kotlinGradlePlugins = ["kotlin-multiplatform"]
+  resolutionStrategy { eachPlugin {
+      if (kotlinGradlePlugins.contains(requested.id.id))
+        useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+  } }
+}
+
 rootProject.name = "parserkt"
+enableFeaturePreview("GRADLE_METADATA")
