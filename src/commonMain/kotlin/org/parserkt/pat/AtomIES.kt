@@ -6,8 +6,14 @@ import org.parserkt.util.*
 // File: pat/AtomIES
 abstract class SatisfyPattern<IN>: PreetyPattern<IN, IN>(), MonoPattern<IN> {
   abstract fun test(value: IN): Boolean
+
   override fun read(s: Feed<IN>) = s.consumeIf(::test)
   override fun show(s: Output<IN>, value: IN?) { value?.let(s) }
+
+  infix fun and(other: SatisfyPattern<IN>) = LogicalConcat(this, other, "&", Boolean::and)
+  infix fun or(other: SatisfyPattern<IN>) = LogicalConcat(this, other, "|", Boolean::or)
+  operator fun not(): SatisfyPattern<IN> = Negate(this)
+
   /** Apply logical relation like (&&) (||) with 2 satisfy patterns */
   class LogicalConcat<IN>(val self: SatisfyPattern<IN>, val other: SatisfyPattern<IN>,
       val name: String, private val join: InfixJoin<Boolean>): SatisfyPattern<IN>() {
@@ -18,10 +24,8 @@ abstract class SatisfyPattern<IN>: PreetyPattern<IN, IN>(), MonoPattern<IN> {
     override fun test(value: IN) = !self.test(value)
     override fun toPreetyDoc(): PP = self.preety().let { "!".preety() + if (self is LogicalConcat<*>) it.surroundText(parens) else it }
   }
-  infix fun and(next: SatisfyPattern<IN>) = LogicalConcat(this, next, "&", Boolean::and)
-  infix fun or(next: SatisfyPattern<IN>) = LogicalConcat(this, next, "|", Boolean::or)
-  operator fun not(): SatisfyPattern<IN> = Negate(this)
 }
+
 class SatisfyEqualTo<IN>(override val constant: IN): SatisfyPattern<IN>(), MonoConstantPattern<IN> {
   override fun test(value: IN) = value == constant
   override fun toPreetyDoc() = constant.rawPreety()
@@ -66,11 +70,13 @@ class StickyEnd<IN, T>(override val item: MonoPattern<IN>, val value: T?, val on
 val anyChar = item<Char>() named "anyChar"
 val EOF = item('\uFFFF') named "EOF"
 
-infix fun <IN> SatisfyPattern<IN>.named(name: PP) = object: SatisfyPatternBy<IN>(this) { override fun toPreetyDoc() = name }
-infix fun <IN> SatisfyPattern<IN>.named(name: String) = named(name.preety())
-
 infix fun <IN, T> Pattern<IN, T>.named(name: PP) = object: Pattern<IN, T> by this {
   override fun toPreetyDoc() = name
   override fun toString() = toPreetyDoc().toString()
 }
+infix fun <IN> SatisfyPattern<IN>.named(name: PP) = object: SatisfyPatternBy<IN>(this) {
+  override fun toPreetyDoc() = name
+}
+
 infix fun <IN, T> Pattern<IN, T>.named(name: String) = named(name.preety())
+infix fun <IN> SatisfyPattern<IN>.named(name: String) = named(name.preety())

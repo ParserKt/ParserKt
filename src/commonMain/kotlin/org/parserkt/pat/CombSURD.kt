@@ -4,21 +4,22 @@ import org.parserkt.*
 import org.parserkt.util.*
 
 // File: pat/CombSURD
-
-// SingleFeed and FoldPattern (Until, Repeat)
+// SingleFeed (for Until) and FoldPattern (Until, Repeat)
 
 /** Peek feed used in [Until], [StickyEnd], etc. */
 class SingleFeed<T>(val value: T): Feed<T> {
   private var valueConsumed = false
   override val peek = value
-  override fun consume() = if (!valueConsumed)
-    { valueConsumed = true; value }
-  else throw Feed.End()
+
+  override fun consume()
+    = if (!valueConsumed)
+      { valueConsumed = true; value }
+    else throw Feed.End()
   override fun toPreetyDoc(): PP = "SingleFeed".preety() + value.preety().surroundText(parens) +
     (if (valueConsumed) ".".preety() else Preety.Doc.None)
 }
 
-/** Pattern of "folded" items, like [Until], [Repeat] */
+/** Pattern of "folded" items, like [Until], [Repeat]. exceptions terminates read with [notParsed] */
 abstract class FoldPattern<IN, T, R>(val fold: Fold<T, R>, val item: Pattern<IN, T>): PreetyPattern<IN, R>() {
   protected open fun unfold(value: R): Iterable<T> = defaultUnfold(value)
   override fun show(s: Output<IN>, value: R?) {
@@ -32,9 +33,11 @@ internal fun <R, T> defaultUnfold(value: R): Iterable<T> = @Suppress("unchecked_
   else -> unsupported("unfold")
 }
 
-// "SURDIES"
-// Seq(type: TUPLE, vararg items), Until(terminate, fold, item),
-//   Repeat(fold, item) { greedy, bound }, Decide(vararg cases)
+// "SURD"
+// Seq(type: TUPLE, vararg items)
+// Until(terminate, fold, item),
+// Repeat(fold, item) { greedy, bound; InBounds, Many }
+// Decide(vararg cases)
 
 class Seq<IN, T, TUPLE: Tuple<T>>(val type: (Cnt) -> TUPLE, vararg val items: Pattern<IN, out T>): PreetyPattern<IN, TUPLE>() {
   constructor(type: Producer<TUPLE>, vararg items: Pattern<IN, out T>): this({ _ -> type() }, *items)
@@ -120,11 +123,10 @@ class RepeatUn<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>, val unfold: (R)
   override fun unfold(value: R) = unfold.invoke(value)
 }
 
+// "IES"
 // item(), item(value)
 // elementIn(vararg values), elementIn(ClosedRange), elementIn(vararg ranges: CharRange)
-// satisfy(predicate)
-
-/* val str = Seq(::StringTuple, item('"').toStringPat(), *anyChar until item('"')) */
+// satisfy(predicate), StickyEnd
 
 fun <T> MonoPair<T>.toPat(): MonoPair<SatisfyEqualTo<T>> = map(::item)
 fun MonoPair<String>.toCharPat(): MonoPair<SatisfyEqualTo<Char>> = map(String::single).toPat()
@@ -133,5 +135,6 @@ fun MonoPattern<Char>.toStringPat() = Convert(this, Char::toString, String::firs
 fun <IN> Pattern<IN, Int>.toLongPat() = Convert(this, Int::toLong, Long::toInt)
 fun Seq<Char, Char, CharTuple>.toStringPat() = Convert(this, { it.toArray().joinToString("") }, { tupleOf(::CharTuple, *it.toList().toArray()) })
 
+/* val str = Seq(::StringTuple, item('"').toStringPat(), *anyChar until item('"')) */
 infix fun MonoPattern<Char>.until(terminate: MonoPattern<Char>)
   = arrayOf<Pattern<Char, String>>(Until(terminate, asString(), this), terminate.toStringPat())
