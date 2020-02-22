@@ -10,4 +10,4 @@ pluginManagement {
 rootProject.name = "parserkt"
 enableFeaturePreview("GRADLE_METADATA")
 
-include(":parserkt-util", ":parserkt-ext")
+include("parserkt-util", "parserkt-ext")
