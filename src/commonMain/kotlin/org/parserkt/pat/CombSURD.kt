@@ -18,7 +18,7 @@ class SingleFeed<T>(val value: T): Feed<T> {
     (if (valueConsumed) ".".preety() else Preety.Doc.None)
 }
 
-/** Pattern of [Iterable.fold] items, like [Until], [Repeat] */
+/** Pattern of "folded" items, like [Until], [Repeat] */
 abstract class FoldPattern<IN, T, R>(val fold: Fold<T, R>, val item: Pattern<IN, T>): PreetyPattern<IN, R>() {
   protected open fun unfold(value: R): Iterable<T> = defaultUnfold(value)
   override fun show(s: Output<IN>, value: R?) {
