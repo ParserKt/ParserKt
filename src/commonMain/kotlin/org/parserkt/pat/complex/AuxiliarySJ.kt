@@ -38,6 +38,8 @@ infix fun <IN, T, SURR> Pattern<IN, T>.suffix(item: ConstantPattern<IN, SURR>) =
 typealias DoubleList<A, B> = Tuple2<List<A>, List<B>>
 open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, val item: Pattern<IN, ITEM>): PreetyPattern<IN, DoubleList<ITEM, SEP>>() {
   protected open fun rescue(s: Feed<IN>, doubleList: DoubleList<ITEM, SEP>): ITEM? = notParsed.also { s.error("expecting item for last seprator $sep") }
+  override fun toPreetyDoc() = listOf(item, sep).preety().joinText("...").surroundText(braces)
+
   override fun read(s: Feed<IN>): DoubleList<ITEM, SEP>? {
     val items: MutableList<ITEM> = mutableListOf()
     val seprators: MutableList<SEP> = mutableListOf()
@@ -48,12 +50,13 @@ open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, val item: Pattern<IN
     readItem() ?: return notParsed
     var seprator = readSep()
     while (seprator != notParsed) {
-      readItem() ?: if (sep.defaultValue?.let { seprator == it } ?: false) return doubleList
+      readItem() ?: if (sep.defaultValue?.let { seprator == it } ?: false) return doubleList // optional seprator
         else rescue(s, doubleList) ?: return notParsed
       seprator = readSep()
     }
     return doubleList
   }
+
   override fun show(s: Output<IN>, value: DoubleList<ITEM, SEP>?) {
     if (value == null) return
     val (values, sepratorList) = value
@@ -62,7 +65,6 @@ open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, val item: Pattern<IN
     try { values.drop(1).forEach { sep.show(s, seprators.next()); item.show(s, it) } }
     catch (_: NoSuchElementException) { error("missing seprator: ${sepratorList.size} vs. ${values.size}") }
   }
-  override fun toPreetyDoc() = listOf(item, sep).preety().joinText("...").surroundText(braces)
 
   protected open fun onItem(value: ITEM) {}
   protected open fun onSep(value: SEP) {}
