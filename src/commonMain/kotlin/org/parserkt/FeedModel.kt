@@ -65,7 +65,8 @@ abstract class StreamFeed<T, BUF, STREAM>(private val stream: STREAM): PreetyFee
   private var tailConsumed = false
 
   override val peek get() = convert(nextOne)
-  override fun consume() = peek.also {
+  override fun consume() = peek.also { moveNext() }
+  private fun moveNext() {
     if (iterator.hasNext()) nextOne = iterator.next()
     else if (!tailConsumed) tailConsumed = true
     else throw Feed.End()
