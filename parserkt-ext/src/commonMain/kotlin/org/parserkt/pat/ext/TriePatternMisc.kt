@@ -15,10 +15,12 @@ abstract class BackTrie<K, V>: PairedTriePattern<K, V>() {
     return super.set(key, value)
   }
 }
+
 open class PairedDictTrie: BackTrie<Char, String>() {
   override fun split(value: String) = value.asIterable()
   override fun join(parts: Iterable<Char>) = parts.joinToString("")
 }
+
 open class PairedLazyTrie<V>(private val op: (String) -> V?): PairedTriePattern<Char, V>() {
   private val currentPath = StringBuilder()
   private fun clear() { currentPath.clear() }
@@ -29,6 +31,7 @@ open class PairedLazyTrie<V>(private val op: (String) -> V?): PairedTriePattern<
     clear(); return op(path)?.also { this[path] = it  }
   }
 }
+
 open class PairedGreedyTrie(private val predicate: Predicate<Char>): PairedLazyTrie<String>({ it.takeIf(String::isNotEmpty) }) {
   override fun read(s: Feed<Char>) = super.read(s) ?: s.takeWhileNotEnd { it !in routes && predicate(it) }
     .joinToString("").takeIf { it.isNotEmpty() || s.peek in routes && !isEOS }

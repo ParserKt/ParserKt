@@ -7,10 +7,13 @@ import org.parserkt.pat.*
 // File: pat/ext/LayoutPattern
 
 /** item<fun sample()> tail<where> children<...{layout item}> */
-sealed class Deep<T, L> { interface HasItem<T> { val item: T }
+sealed class Deep<T, L> {
+  interface HasItem<T> { val item: T }
+
   data class Root<T, L>(val nodes: List<Deep<T, L>>): Deep<T, L>()
   data class Nest<T, L>(override val item: T, val tail: L, val children: List<Deep<T, L>>): Deep<T, L>(), HasItem<T>
   data class Term<T, L>(override val item: T): Deep<T, L>(), HasItem<T>
+
   fun <R> visitBy(visitor: Visitor<T, L, R>): R = when (this) {
     is Root -> visitor.see(this)
     is Nest -> visitor.see(this)
@@ -28,9 +31,20 @@ open class LayoutPattern<IN, T, L>(val item: Pattern<IN, T>, val tail: Pattern<I
   protected open val layoutZero = 0
   protected open fun rescueLayout(s: Feed<IN>, parsed: T): Int? = notParsed
   protected open fun rescueLayout(s: Feed<IN>, parsed: T, parsedTail: L): Int? = notParsed
+  override fun toPreetyDoc() = listOf("Layout", item, tail, layout).preety().colonParens()
 
   /** [Pattern.show] for resulting pattern should be general, since [show] does not use this function */
   protected open fun decideLayerItem(parsed: T, parsedTail: L): Pattern<IN, T> = item
+
+  override fun read(s: Feed<IN>): Deep<T, L>? {
+    val (closed, layout) = readRec(s) ?: return notParsed
+    onRootIndent(s, closed)
+    return Deep.Root(layout)
+  }
+  override fun show(s: Output<IN>, value: Deep<T, L>?) {
+    if (value == null) return
+    value.visitBy(ShowVisitor(s))
+  }
 
   fun readRec(s: Feed<IN>, layerItem: Pattern<IN, T>, n0: Int): LayoutRec<T, L> {
     val layerItems: MutableList<Deep<T, L>> = mutableListOf()
@@ -56,18 +70,8 @@ open class LayoutPattern<IN, T, L>(val item: Pattern<IN, T>, val tail: Pattern<I
     }
     return Pair(n0, layerItems)
   }
-  fun readRec(s: Feed<IN>, n0: Int) = readRec(s, item, n0)
-  fun readRec(s: Feed<IN>) = readRec(s, layoutZero)
+  fun readRec(s: Feed<IN>, n0: Int = layoutZero) = readRec(s, item, n0)
 
-  override fun read(s: Feed<IN>): Deep<T, L>? {
-    val (closed, layout) = readRec(s) ?: return notParsed
-    onRootIndent(s, closed)
-    return Deep.Root(layout)
-  }
-  override fun show(s: Output<IN>, value: Deep<T, L>?) {
-    if (value == null) return
-    value.visitBy(ShowVisitor(s))
-  }
   private inner class ShowVisitor(private val s: Output<IN>): Deep.Visitor<T, L, Unit> {
     private var level = layoutZero
     override fun see(t: Deep.Root<T, L>) { t.nodes.forEach { it.show() } }
@@ -79,9 +83,10 @@ open class LayoutPattern<IN, T, L>(val item: Pattern<IN, T>, val tail: Pattern<I
     override fun see(t: Deep.Term<T, L>) { layout.show(s, level); item.show(s, t.item) }
     private fun Deep<T, L>.show() = visitBy(this@ShowVisitor)
   }
-  override fun toPreetyDoc() = listOf("Layout", item, tail, layout).preety().colonParens()
 
-  protected open fun onRootIndent(s: Feed<IN>, closed: Int) { if (closed != 0) s.error("terminate indent not zero: $closed") }
+  protected open fun onRootIndent(s: Feed<IN>, closed: Int) {
+    if (closed != 0) s.error("terminate indent not zero: $closed")
+  }
   protected open fun onNestIndent(s: Feed<IN>, n0: Int, n1: Int, closed: Int, parsedTail: L, layerItems: MutableList<Deep<T, L>>) {
     if (n1 <= n0) s.error("bad layout-open decrement ($n0 => $n1)")
   }
