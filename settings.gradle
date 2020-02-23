@@ -1,12 +1,15 @@
 pluginManagement {
   repositories { jcenter() }
-  def kotlinGradlePlugins = ["kotlin-multiplatform"]
-  def orgJetBrains = "org.jetbrains."
+  def gradlePlugins = [
+    "kotlin-multiplatform": "org.jetbrains.kotlin:kotlin-gradle-plugin"
+  ]
+
   resolutionStrategy { eachPlugin {
-      if (kotlinGradlePlugins.contains(requested.id.id))
-        useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
-      else if (requested.id.id.startsWith(orgJetBrains))
-        useModule("${requested.id.id}:${requested.id.id[orgJetBrains.length()..-1]}-gradle-plugin:${requested.version}")
+      def id = requested.id.id
+      if (gradlePlugins.containsKey(id))
+        useModule("${gradlePlugins[id]}:${requested.version}")
+      else if (id.contains("."))
+        useModule("${id}:${id.split(/\./)[-1]}-gradle-plugin:${requested.version}")
   } }
 }
 
