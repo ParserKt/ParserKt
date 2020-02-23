@@ -1,7 +1,8 @@
 pluginManagement {
   repositories { jcenter() }
   def gradlePlugins = [
-    "kotlin-multiplatform": "org.jetbrains.kotlin:kotlin-gradle-plugin"
+    "kotlin-multiplatform": "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    "com.github.johnrengelman.shadow": "com.github.jengelman.gradle.plugins:shadow"
   ]
 
   resolutionStrategy { eachPlugin {

@@ -11,11 +11,11 @@ ParserKt is a naive one-pass __recursive descent parser__ framework for Kotlin
 
 A parser is a kind of program extracting data from input sequences:
 
-> NOTE: Using REPL from command line is not a good practice, you can <a href="#gradle-project">create Gradle project</a> or use IDEA Kotlin REPL.
+> NOTE: Using REPL from command line is not a good practice, you can <a href="#header">create Gradle project</a> or use IDEA Kotlin REPL.
 
 ```bash
-gradle jvmJar
-kotlinc -cp build/libs/parserkt-jvm-0.9.jar:parserkt-util/build/libs/parserkt-util-jvm-0.9.jar
+gradle shadowJar
+kotlinc -cp build/libs/ParserKt-*.jar
 ```
 
 ```kotlin
@@ -24,7 +24,7 @@ import org.parserkt.pat.* // item(x), elementIn('a'..'z'), satisfy<Int> { it % 2
 import org.parserkt.util.* // asList(), asString(), ...
 ```
 
-Import main, `pat`, `util`, then we can implement our own combined pattern! (for a more in depth sample, create Grade project)
+Import main, `pat`, `util`, then we can implement our own combined pattern! (for a more in depth sample, see link at <a href="#header">header</a>)
 
 ```kotlin
 val digits = Repeat(asList(), elementIn('0'..'9')) //{[0-9]}
@@ -59,7 +59,7 @@ sealed class PlusAst {
 }
 ```
 
-(`sealed class` is just class with determinable subclasses in it's inner name scope)
+(`sealed class` is just class with determinable subclasses, in it's inner name scope)
 
 This data structure implies, every symbol of `a + b` could be an integer (like `0`, `9`, `16`, ...`IntLiteral(n)`), or other `a + b` (`1 + 2`, `9 + 0`, ...`Plus(left, right)`)
 
