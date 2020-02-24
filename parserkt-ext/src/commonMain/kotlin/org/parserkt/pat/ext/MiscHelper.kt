@@ -90,7 +90,7 @@ abstract class LexicalBasics {
     fun suffix1(tail: CharPattern, item: CharPattern) = Convert(Seq(::StringTuple, *item until tail),
       { it[0] + it[1] }, { it.run { tupleOf(::StringTuple, take(length -1), last().toString()) } })
 
-    inline fun <reified T, T0> elementTyped() where T: T0 = object: SatisfyPattern<T0>() {
+    inline fun <reified T, T0> itemTyped() where T: T0 = object: SatisfyPattern<T0>() {
       override fun test(value: T0) = value is T
       override fun toPreetyDoc() = T::class.preety().surroundText(parens)
     }

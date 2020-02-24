@@ -127,7 +127,7 @@ Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility
 ### abbreviations
 
 + POPCorn (Pattern, OptionalPattern, PatternWrapper, ConstantPattern)
-+ SURDIES(Seq, Until, Repeat, Decied, item, elementIn, satisfy)
++ SURDIES(Seq, Until, Repeat, Decide, item, elementIn, satisfy)
 + CCDP(Convert, Contextual, Deferred, Piped)
 + SJIT(SurroundBy, JoinBy, InfixPattern, TriePattern)
 
