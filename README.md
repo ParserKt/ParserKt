@@ -160,9 +160,9 @@ Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility
 + CCDP(Convert, Contextual, Deferred, Piped)
 + SJIT(SurroundBy, JoinBy, InfixPattern, TriePattern)
 
-### More runnable REP snippet
+### More runnable REPL snippet
 
-<a id="see-more">Note</a> for frequently-used pattern combinations, we have `org.parserkt.pat.ext`:
+<a id="see-more">Note that</a> for frequently-used pattern combinations, we have `org.parserkt.pat.ext`:
 
 ```kotlin
 // Using pat.ext and LexicalBasics
@@ -173,14 +173,13 @@ digitsInt.read("180") //180
 
 ```kotlin
 // Implementing complex pattern
-import org.parserkt.pat.complex.JoinBy
-// Patterns with constant values can be ignored in parse result and OK to perform rebuild
-val letter = elementIn('A'..'Z', 'a'..'z', '0'..'9') or elementIn('_')
+import org.parserkt.pat.complex.*
+// Patterns with constant values are OK to perform rebuild, even ignored in parse result
+val letter = elementIn('A'..'Z', 'a'..'z', '0'..'9') or item('_')
 val sep = elementIn(',',':').toConstant(',')
 val xsv = JoinBy(sep, Repeat(asString(), !sep))
 xsv.read("monkey,banana,melon") //Tuple2(first=[monkey, banana, melon], second=[,, ,])
 
-import org.parserkt.pat.complex.*
 xsv.concatCharJoin().read("猴:雀:瓜") //Tuple2(first=[猴, 雀, 瓜], second=::)
 val goodXsv = xsv.mergeConstantJoin()
 goodXsv.read("she,her,herself") //[she, her, herself]
@@ -191,6 +190,7 @@ goodXsv.rebuild("she,her,herself") //she,her,herself
 import org.parserkt.pat.*
 import org.parserkt.pat.complex.*
 import org.parserkt.util.*
+
 val dict = TriePattern<Char, String>().apply {
   mergeStrings("hello" to "こんにちは")
   mergeStrings("world" to "世界")
