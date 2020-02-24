@@ -9,7 +9,6 @@
 </div>
 
 <link rel="stylesheet" href="https://parserkt.github.io/css/github_corner.css" type="text/css">
-<script src="https://parserkt.github.io/scripts/github_corner.js"></script>
 
 <div id="header" align="center">
   <img alt="ParserKt" src="https://parserkt.github.io/resources/ParserKt.svg" widht="160" height="160"/>
@@ -248,3 +247,5 @@ sexp.rebuild("((monkey banana) (deep parser))")  //((monkey banana) (deep parser
 + Origin for [Feed stream (2)](https://github.com/duangsuse-valid-projects/Share/tree/master/Others/kt_misc/)
 + Origin for ["pattern" model](https://github.com/duangsuse-valid-projects/SomeAXML/tree/master/src/commonMain/kotlin/org/duangsuse/bin/pat)
 + Origin for [NumOps](https://github.com/duangsuse-valid-projects/three-kt-files/blob/master/src/commonMain/kotlin/NumEqualize.kt), [RangeMap](https://github.com/duangsuse-valid-projects/jison/blob/master/src/jvmMain/kotlin/org/parserkt/util/RangeMap.kt)
+
+(script for GitHub pages) <script src="https://parserkt.github.io/scripts/github_corner.js"></script>
