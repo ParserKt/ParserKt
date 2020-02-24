@@ -2,7 +2,7 @@
 
 <div id="header" align="center">
   <img alt="ParserKt" src="https://parserkt.github.io/resources/ParserKt.svg" widht="160" height="160"></img><br>
-  <a href="https://jitpack.io/#parserkt/parserkt"><img alt="version" src="https://jitpack.io/v/parserkt/parserkt.svg"></img></a>・<a href="#TODO"><img alt="examples" src="https://img.shields.io/badge/-examples-yellow"></img></a>・<a href="#TODO"><img alt="comparasion" src="https://img.shields.io/badge/-comparasion-informational"></img></a>
+  <img alt="kotlin" src="https://img.shields.io/badge/Kotlin-jvm&js--1.3-orange?logo=kotlin"></img>・<a href="https://jitpack.io/#parserkt/parserkt"><img alt="version" src="https://jitpack.io/v/parserkt/parserkt.svg"></img></a>・<a href="https://github.com/ParserKt/examples"><img alt="examples" src="https://img.shields.io/badge/-examples-yellow"></img></a>・<a href="wiki/Comparison"><img alt="comparison" src="https://img.shields.io/badge/-comparison-informational"></img></a>
 </div>
 
 ## Introduction
