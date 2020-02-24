@@ -36,9 +36,27 @@ digits.read("12a3") //[1, 2]
 digits.read("a3") //null //(= notParsed)
 ```
 
+```kotlin
+// Generic parsing for [1, a, b] where (b > a)
+val ints = Seq(::IntTuple, item(1), *Contextual(item<Int>()) { i -> satisfy<Int> { it > i } }.flatten().items() )
+ints.rebuild(1,2,3) //[1, 2, 3]
+ints.rebuild(1,2,1) //notParsed
+i.rebuild(1,0,1) //[1, 0, 1]
+```
+
+```kotlin
+// Using Convert patterns
+fun digitItem(digit: SatisfyPattern<Char>) = Convert(digit, {it-'0'}, {'0'+it})
+val digit = digitItem(elementIn('0'..'9'))
+val digitsInt = Repeat(JoinFold(0) { this*10 + it }, digit)
+digitsInt.read("233") //233
+```
+
+(<a href="#see-more">click here</a> if you want to try out more)
+
 parser mainly recognize, and transform input into a simpler form (like AST) for post-processing (preetify, evaluate, type-check, ...). and it can be used to create (DSL) language tools / compilers / transpilers / interpreters.
 
-ParserKt divides complex grammar into simple subpart `val` definition way, "entry rule" could be all public structure — like `item`, `elementIn`, `repeat`, and thus it's very easy to debug and to reuse implemented syntax.
+ParserKt divides complex grammar into simple subpart `val` definition, "entry rule" could be all public structure — like `item`, `elementIn`, `repeat`, and thus it's very easy to debug and to reuse implemented syntax.
 
 > What means "one-pass"?
 
@@ -85,7 +103,7 @@ From rule `Plus` to its subrule `Int`, that's "descent".
 
 ——
 
-ParserKt cannot make any lookaheads, so it's looks like impossible to parse syntax like `//`, `/*`, `0x` `0b` and error when `0(octal)`.
+ParserKt cannot make any lookaheads, so it's looks like impossible to parse syntax like `//`, `/*`, `0x` `0b` (and error when `0(octal)`).
 
 In fact, "lookahead" can be stored in _call stack_ of `Pattern.read` by pattern `Contextual`, so write parser for such syntax is possible (but much more complicated, so it's better to create new Pattern subclass, or fall back to tokenizer-parser `LexerFeed`, or use `TriePattern`)
 
@@ -127,8 +145,8 @@ Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility
 
 ### Modules
 
-+ [:parserkt-util](parserkt-util) Fundamental data types (`Slice`, `Tuple`, `Trie`, ...) and helper class (`Preety`, `AnyBy`, ...) used/prepared for ParserKt and friends
 + [:parserkt](src) for Feed/Input model and basic (`org.parserkt.pat`) / complex (`org.parserkt.pat.complex`) patterns
++ [:parserkt-util](parserkt-util) Fundamental data types (`Slice`, `Tuple`, `Trie`, ...) and helper class (`Preety`, `AnyBy`, ...) used/prepared for ParserKt and friends
 + [:parserkt-ext](parserkt-ext) Extension library for real-world parsers, eliminating boilerplate code (`LayoutPattern`, `LexicalBasics`, ...)
 
 ### abbreviations
@@ -137,6 +155,65 @@ Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility
 + SURDIES(Seq, Until, Repeat, Decide, item, elementIn, satisfy)
 + CCDP(Convert, Contextual, Deferred, Piped)
 + SJIT(SurroundBy, JoinBy, InfixPattern, TriePattern)
+
+### More runnable REP snippet
+
+<a id="see-more">Note</a> for frequently-used pattern combinations, we have `org.parserkt.pat.ext`:
+
+```kotlin
+// Using pat.ext and LexicalBasics
+import org.parserkt.pat.ext.*
+val digitsInt = Repeat(asInt(), LexicalBasics.digitFor('0'..'9'))
+digitsInt.read("180") //180
+```
+
+```kotlin
+// Implementing complex pattern
+import org.parserkt.pat.complex.JoinBy
+// Patterns with constant values can be ignored in parse result and OK to perform rebuild
+val letter = elementIn('A'..'Z', 'a'..'z', '0'..'9') or elementIn('_')
+val sep = elementIn(',',':').toConstant(',')
+val xsv = JoinBy(sep, Repeat(asString(), !sep))
+xsv.read("monkey,banana,melon") //Tuple2(first=[monkey, banana, melon], second=[,, ,])
+
+import org.parserkt.pat.complex.*
+xsv.concatCharJoin().read("猴:雀:瓜") //Tuple2(first=[猴, 雀, 瓜], second=::)
+val goodXsv = xsv.mergeConstantJoin()
+goodXsv.read("she,her,herself") //[she, her, herself]
+goodXsv.rebuild("she,her,herself") //she,her,herself
+```
+
+```kotlin
+import org.parserkt.pat.*
+import org.parserkt.pat.complex.*
+import org.parserkt.util.*
+val dict = TriePattern<Char, String>().apply {
+  mergeStrings("hello" to "こんにちは")
+  mergeStrings("world" to "世界")
+}
+val noun = Repeat(asList(), dict)
+noun.read("helloworld") //[こんにちは, 世界]
+
+val pharse = JoinBy(Decide(elementIn('0'..'9'), elementIn(' ', '\t', '\n', '\r')), dict)
+pharse.read("hello6world hello") //Tuple2(first=[こんにちは, 世界, こんにちは], second=[Tuple2(first=0, second=6), Tuple2(first=1, second= )])
+```
+
+```kotlin
+// Back converts (third argument for Convert) are optional
+sealed class Sexp { data class Term(val name: String): Sexp(); data class Nest(val list: List<Sexp>): Sexp() }
+lateinit var sexp: Pattern<Char, Sexp>
+val str = Repeat(asString(), !elementIn(' ', '(', ')'))
+val atom = Convert(str, { Sexp.Term(it) }, { it.name })
+
+val nestItems = SurroundBy(parens.toCharPat(), JoinBy(item(' '), Deferred{sexp}).mergeConstantJoin())
+val nest = Convert(nestItems, { Sexp.Nest(it) }, { it.list })
+sexp = Decide(nest, atom).mergeFirst { if (it is Sexp.Nest) 0 else 1 }
+
+sexp.read("((monkey banana) (deep parser))") //Nest(list=[Nest(list=[Term(name=monkey), Term(name=banana)]), Nest(list=[Term(name=deep), Term(name=parser)])])
+sexp.rebuild("((monkey banana) (deep parser))")  //((monkey banana) (deep parser))
+```
+
+> __NOTE__: when using pattern `Until`, think if it can be expressed using `Repeat(..., !SatisfPattern)` first
 
 ## References
 
