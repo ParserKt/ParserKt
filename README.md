@@ -1,13 +1,13 @@
 # ParserKt
 
 <div id="header" align="center">
-  <img alt="ParserKt" src="https://parserkt.github.io/resources/ParserKt.svg" widht="160" height="160"></img><br>
-  <img alt="kotlin" src="https://img.shields.io/badge/Kotlin-jvm&js--1.3-orange?logo=kotlin"></img>・<a href="https://jitpack.io/#parserkt/parserkt"><img alt="version" src="https://jitpack.io/v/parserkt/parserkt.svg"></img></a>・<a href="https://github.com/ParserKt/examples"><img alt="examples" src="https://img.shields.io/badge/-examples-yellow"></img></a>・<a href="wiki/Comparison"><img alt="comparison" src="https://img.shields.io/badge/-comparison-informational"></img></a>
+  <img alt="ParserKt" src="//parserkt.github.io/resources/ParserKt.svg" widht="160" height="160"></img><br>
+  <a href="https://jitpack.io/#parserkt/parserkt"><img alt="version" src="https://jitpack.io/v/parserkt/parserkt.svg"></img></a>・<a href="build.gradle"><img alt="kotlin" src="https://img.shields.io/badge/Kotlin-jvm&js--1.3-orange?logo=kotlin"></img></a>・<a href="//github.com/ParserKt/examples"><img alt="examples" src="https://img.shields.io/badge/-examples-yellow"></img></a>・<a href="//github.com/ParserKt/ParserKt/wiki/Comparison"><img alt="comparison" src="https://img.shields.io/badge/-comparison-informational"></img></a>
 </div>
 
 ## Introduction
 
-ParserKt is a naive one-pass __recursive descent parser__ framework for Kotlin
+ParserKt is a naive one-pass __recursive descent, scannerless parser__ framework for Kotlin (mainly JVM, compatible for JS)
 
 A parser is a kind of program extracting data from input sequences:
 
@@ -34,6 +34,8 @@ digits.read("a3") //null //(= notParsed)
 ```
 
 parser mainly recognize, and transform input into a simpler form (like AST) for post-processing (preetify, evaluate, type-check, ...). and it can be used to create (DSL) language tools / compilers / transpilers / interpreters.
+
+ParserKt divides complex grammar into simple subpart `val` definition way, "entry rule" could be all public structure — like `item`, `elementIn`, `repeat`, and thus it's very easy to debug and to reuse implemented syntax.
 
 > What means "one-pass"?
 
@@ -111,6 +113,8 @@ For example, keywords about parser compilers:
 + `ReaderFeed` for __implementating interactive shells__ (JVM only)
 + The framework manages parsed data in a flexible also extensible way (`Tuple2`, Sized-`Tuple`, `Fold`)
 + __Supports complex contextual syntax structure that cannot be supported directly by parser compilers__ (`LayoutPattern`, `NumUnits`, ...)
++ Extensive error messages using `clam {"message"}`, `clamWhile(pat, defaultValue) {"message"}`
++ Parser input stream `Feed` can have state storage: `withState(T)`, `stateAs<T>()`
 + <500K compiled JVM library, no extra runtime (except kotlin-stdlib, Kotlin sequences are optional) needed
 + __No magics__, all code are __rewrote at least 9 times__ by author, ugly/ambiguous/orderless codes are removed
 
