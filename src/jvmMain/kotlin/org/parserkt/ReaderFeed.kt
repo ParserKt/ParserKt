@@ -22,4 +22,4 @@ class ReaderFeed(reader: Reader): StreamFeed<Char, Int, Reader>(reader) {
 
 fun inputOf(reader: Reader, file: String = "<read>") = CharInput(ReaderFeed(reader), file)
 
-val CharInput.Companion.STDIN by lazy { inputOf(System.`in`, "<stdin>") }
+val CharInput.Companion.STDIN by lazy { CharInput(ReaderFeed(System.`in`), "<stdin>") }

@@ -90,8 +90,11 @@ abstract class LexicalBasics {
     fun suffix1(tail: CharPattern, item: CharPattern) = Convert(Seq(::StringTuple, *item until tail),
       { it[0] + it[1] }, { it.run { tupleOf(::StringTuple, take(length -1), last().toString()) } })
 
-    inline fun <reified T, T0> itemTyped() where T: T0 = object: SatisfyPattern<T0>() {
-      override fun test(value: T0) = value is T
+    val newlineChar = elementIn('\r', '\n') named "newline"
+    val singleLine = suffix1(newlineChar, anyChar)
+
+    inline fun <reified T, T0> itemTyped(crossinline predicate: Predicate<T> = {true}) where T: T0 = object: SatisfyPattern<T0>() {
+      override fun test(value: T0) = value is T && predicate(value)
       override fun toPreetyDoc() = T::class.preety().surroundText(parens)
     }
   }
@@ -104,12 +107,10 @@ abstract class LexicalBasics {
 }
 
 //// == Old-style Parsing (Regex TextPattern, LexerFeed) ==
-val newlineChar = elementIn('\r', '\n') named "newline"
-val singleLine = LexicalBasics.suffix1(newlineChar, anyChar)
 
 /** Pattern for reading with [Regex], input string is taken by [item] from [Feed] stream */
 open class TextPattern<T>(item: Pattern<Char, String>, val regex: Regex, val transform: (List<String>) -> T): ConvertPatternWrapper<Char, String, T>(item) {
-  constructor(regex: Regex, transform: (List<String>) -> T): this(singleLine, regex, transform)
+  constructor(regex: Regex, transform: (List<String>) -> T): this(LexicalBasics.singleLine, regex, transform)
   override fun read(s: Feed<Char>): T? = item.read(s)?.let { regex.find(it)?.groupValues?.let(transform) }
   override open fun show(s: Output<Char>, value: T?) {}
   override fun wrap(item: Pattern<Char, String>) = TextPattern(item, regex, transform)
