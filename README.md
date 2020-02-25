@@ -152,9 +152,9 @@ For example, keywords about parser compilers:
 + __Generic parsing input__ (Char, String, XXXToken, ...)
 + __One-pass input stream design__ without `hasNext`
 + `ReaderFeed` for __implementating interactive shells__ (JVM only)
-+ The framework manages parsed data in a flexible also extensible way (`Tuple2`, Sized-`Tuple`, `Fold`)
-+ __Supports complex contextual syntax structure that cannot be supported directly by parser compilers__ (`LayoutPattern`, `NumUnits`, ...)
-+ Extensive error messages using `clam {"message"}`, `clamWhile(pat, defaultValue) {"message"}`
++ The framework manages parsed data in a flexible-also-extensible way (`Tuple2`, Sized-`Tuple`, `Fold`)
++ __Supports complex contextual syntax structure that cannot be supported directly in parser compilers__ (`LayoutPattern`, `NumUnits`, ...)
++ Extensible error messages using `clam {"message"}`, `clamWhile(pat, defaultValue) {"message"}`
 + Parser input stream `Feed` can have state storage: `withState(T)`, `stateAs<T>()`
 + <500K compiled JVM library, no extra runtime (except kotlin-stdlib, Kotlin sequences are optional) needed
 + __No magics__, all code are __rewrote at least 9 times__ by author, ugly/ambiguous/orderless codes are removed
@@ -172,9 +172,9 @@ Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility
 ### abbreviations
 
 + POPCorn (Pattern, OptionalPattern, PatternWrapper, ConstantPattern)
-+ SURDIES(Seq, Until, Repeat, Decide, item, elementIn, satisfy)
-+ CCDP(Convert, Contextual, Deferred, Piped)
-+ SJIT(SurroundBy, JoinBy, InfixPattern, TriePattern)
++ SURDIES (Seq, Until, Repeat, Decide, item, elementIn, satisfy)
++ CCDP (Convert, Contextual, Deferred, Piped)
++ SJIT (SurroundBy, JoinBy, InfixPattern, TriePattern)
 
 ### More runnable REPL snippet
 
@@ -193,7 +193,7 @@ import org.parserkt.pat.complex.*
 // Patterns with constant values are OK to perform rebuild, even ignored in parse result
 val letter = elementIn('A'..'Z', 'a'..'z', '0'..'9') or item('_')
 val sep = elementIn(',',':').toConstant(',') named "sep"
-val xsv = JoinBy(sep, Repeat(asString(), letter)) // try !sep replace letter?
+val xsv = JoinBy(sep, Repeat(asString(), letter)) // try replace letter using !sep
 xsv.read("monkey,banana,melon") //Tuple2(first=[monkey, banana, melon], second=[,, ,])
 
 xsv.concatCharJoin().read("猴:雀:瓜") //Tuple2(first=[猴, 雀, 瓜], second=::)
@@ -235,7 +235,7 @@ sexp.read("((monkey banana) (deep parser))") //Nest(list=[Nest(list=[Term(name=m
 sexp.rebuild("((monkey banana) (deep parser))")  //((monkey banana) (deep parser))
 ```
 
-> __NOTE__: when using pattern `Until`, think if it can be expressed using `Repeat(..., !SatisfPattern)` first
+> __NOTE__: when using pattern `Until`, think if it can be expressed by `Repeat(..., !SatisfPattern)` first
 
 ## References
 
