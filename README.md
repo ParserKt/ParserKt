@@ -8,7 +8,8 @@
   </svg></a>
 </div>
 
-<link rel="stylesheet" href="https://parserkt.github.io/css/github_corner.css" type="text/css">
+<link rel="stylesheet" href="https://parserkt.github.io/css/github_corner.css"/>
+<link rel="icon" href="https://parserkt.github.io/resources/ParserKt.png"/>
 
 <div id="header" align="center">
   <img alt="ParserKt" src="https://parserkt.github.io/resources/ParserKt.svg" widht="160" height="160"/>
