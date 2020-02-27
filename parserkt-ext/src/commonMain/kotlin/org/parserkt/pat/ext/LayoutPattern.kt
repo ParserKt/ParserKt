@@ -10,9 +10,15 @@ import org.parserkt.pat.*
 sealed class Deep<T, L> {
   interface HasItem<T> { val item: T }
 
-  data class Root<T, L>(val nodes: List<Deep<T, L>>): Deep<T, L>()
-  data class Nest<T, L>(override val item: T, val tail: L, val children: List<Deep<T, L>>): Deep<T, L>(), HasItem<T>
-  data class Term<T, L>(override val item: T): Deep<T, L>(), HasItem<T>
+  data class Root<T, L>(val nodes: List<Deep<T, L>>): Deep<T, L>() {
+    override fun toString() = "Root $nodes"
+  }
+  data class Nest<T, L>(override val item: T, val tail: L, val children: List<Deep<T, L>>): Deep<T, L>(), HasItem<T> {
+    override fun toString() = "$item$tail { ${children.joinToString()} }"
+  }
+  data class Term<T, L>(override val item: T): Deep<T, L>(), HasItem<T> {
+    override fun toString() = item.toString()
+  }
 
   fun <R> visitBy(visitor: Visitor<T, L, R>): R = when (this) {
     is Root -> visitor.see(this)
@@ -72,13 +78,13 @@ open class LayoutPattern<IN, T, L>(val item: Pattern<IN, T>, val tail: Pattern<I
   }
   fun readRec(s: Feed<IN>, n0: Int = layoutZero) = readRec(s, item, n0)
 
-  private inner class ShowVisitor(private val s: Output<IN>): Deep.Visitor<T, L, Unit> {
+  protected inner class ShowVisitor(private val s: Output<IN>, private val indent: Int = 1): Deep.Visitor<T, L, Unit> {
     private var level = layoutZero
     override fun see(t: Deep.Root<T, L>) { t.nodes.forEach { it.show() } }
     override fun see(t: Deep.Nest<T, L>) {
       layout.show(s, level)
       item.show(s, t.item); tail.show(s, t.tail)
-      ++level; t.children.forEach { it.show() }; --level
+      level += indent; t.children.forEach { it.show() }; level -= indent
     }
     override fun see(t: Deep.Term<T, L>) { layout.show(s, level); item.show(s, t.item) }
     private fun Deep<T, L>.show() = visitBy(this@ShowVisitor)
