@@ -53,11 +53,7 @@ abstract class Tuple<E>(override val size: Cnt): Slice<E> {
     operator fun setValue(self: Tuple<in T>, _p: KProperty<*>, value: T) { self[idx] = value }
   }
 
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    return if (other !is Tuple<*>) false
-    else items.contentEquals(other.items)
-  }
+  override fun equals(other: Any?) = compareUsing(other) { items.contentEquals(it.items) }
   override fun hashCode() = items.contentHashCode()
   override fun toString() = items.asIterable().preety().joinText(", ").surroundText(parens).toString()
 }

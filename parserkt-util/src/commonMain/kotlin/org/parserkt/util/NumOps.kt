@@ -3,6 +3,7 @@ package org.parserkt.util
 interface NumOps<NUM: Comparable<NUM>> {
   val zero: NUM
   fun from(n: Number): NUM
+
   fun plus(b: NUM, a: NUM): NUM
   fun minus(b: NUM, a: NUM): NUM
   fun times(b: NUM, a: NUM): NUM

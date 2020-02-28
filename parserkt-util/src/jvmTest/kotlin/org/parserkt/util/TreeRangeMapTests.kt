@@ -13,7 +13,7 @@ class TreeRangeMapTest {
     20 stop 21 to  "9",
     -9 stop 0 to  "xd"
   )
-  @BeforeTest fun setupMap() {
+  init {
     for ((k, v) in expectedMap) map[k] = v
   }
 

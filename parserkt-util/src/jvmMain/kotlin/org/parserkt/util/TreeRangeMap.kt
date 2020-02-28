@@ -1,6 +1,6 @@
 package org.parserkt.util
 
-import java.util.*
+import java.util.TreeSet
 
 /** A [RangeMap] implemented by sorted map
  * + NOTE: RangeMap is __not ready__ to handle overlapped ranges */
@@ -28,11 +28,7 @@ open class TreeRangeMap<N, T>: MutableRangeMap<N, T> where N: Comparable<N> {
     class Blank<N>(start: N): Ray<N, Nothing>(start) where N: Comparable<N>
 
     override fun compareTo(other: Ray<N, *>) = start.compareTo(other.start)
-    override fun equals(other: Any?): Boolean {
-      if (this === other) return true
-      return if (other !is Ray<*, *>) false
-      else start == other.start
-    }
+    override fun equals(other: Any?) = compareUsing(other) { start == it.start }
     override fun hashCode(): Int = Ray::class.hashCode()
   }
 }

@@ -6,6 +6,12 @@ interface Eq {
   override fun hashCode(): Int
 }
 
+inline fun <reified T: Any> T.compareUsing(other: Any?, crossinline compare: T.(T) -> Boolean): Boolean {
+  if (this === other) return true
+  return other is T && compare(other)
+}
+fun hash(vararg values: Any?): Int = values.contentHashCode()
+
 /** Transparent delegate for [Any] */
 open class AnyBy(val obj: Any): Eq {
   override fun equals(other: Any?)

@@ -28,22 +28,18 @@ open class Trie<K, V>(var value: V?) { constructor(): this(null)
     throw NoSuchElementException(msg)
   }
 
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    return if (other !is Trie<*, *>) false
-    else (routes == other.routes) && value == other.value
-  }
-  override fun hashCode() = routes.hashCode() xor value.hashCode()
+  override fun equals(other: Any?) = compareUsing(other) { routes == it.routes && value == it.value }
+  override fun hashCode() = hash(routes, value)
   override fun toString(): String = when {
-    value == null -> "Path".preety() + routes
-    value != null && routes.isNotEmpty() -> "Bin".preety() + value.preety().surroundText(squares) + routes
-    value != null && routes.isEmpty() -> "Term".preety() + value.preety().surroundText(parens)
+    value == null -> "Path$routes"
+    value != null && routes.isNotEmpty() -> "Bin[$value]$routes"
+    value != null && routes.isEmpty() -> "Term($value)"
     else -> impossible()
-  }.toString()
+  }
 }
 
 //// == Abstract ==
-fun <K, V> Trie<K, V>.toMap() = collectKeys().toMap { k -> k to this[k]!! }
+fun <K, V> Trie<K, V>.toMap() = collectKeys().associate { it to this[it]!! }
 
 operator fun <V> Trie<Char, V>.get(index: CharSequence) = this[index.asIterable()]
 operator fun <V> Trie<Char, V>.set(index: CharSequence, value: V) { this[index.asIterable()] = value }

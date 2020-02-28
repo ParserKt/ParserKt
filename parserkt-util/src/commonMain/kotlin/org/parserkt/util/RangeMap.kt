@@ -6,11 +6,17 @@ interface ExclusiveRange<T> where T: Comparable<T> {
   val isEmpty get() = start >= stop
 }
 
-class IntExclusiveRange(override val start: Int, override val stop: Int): ExclusiveRange<Int>
-class LongExclusiveRange(override val start: Long, override val stop: Long): ExclusiveRange<Long>
+abstract class BaseExclusiveRange<T>(override val start: T, override val stop: T): ExclusiveRange<T> where T: Comparable<T> {
+  override fun equals(other: Any?) = compareUsing(other) { start == it.start && stop == it.stop }
+  override fun hashCode() = hash(start, stop)
+  override fun toString() = "($start, $stop]"
+}
 
-class FloatExclusiveRange(override val start: Float, override val stop: Float): ExclusiveRange<Float>
-class DoubleExclusiveRange(override val start: Double, override val stop: Double): ExclusiveRange<Double>
+class IntExclusiveRange(start: Int, stop: Int): BaseExclusiveRange<Int>(start, stop)
+class LongExclusiveRange(start: Long, stop: Long): BaseExclusiveRange<Long>(start, stop)
+
+class FloatExclusiveRange(start: Float, stop: Float): BaseExclusiveRange<Float>(start, stop)
+class DoubleExclusiveRange(start: Double, stop: Double): BaseExclusiveRange<Double>(start, stop)
 
 infix fun Int.stop(other: Int) = IntExclusiveRange(this, other)
 infix fun Long.stop(other: Long) = LongExclusiveRange(this, other)

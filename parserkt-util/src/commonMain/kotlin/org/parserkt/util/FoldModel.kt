@@ -31,19 +31,9 @@ abstract class ConvertFold<T, A, R>: Fold<T, R> {
   }
 }
 
-/** Shorthand for [ConvertFold], use like `JoinFold(initial = 0,  append = Int::plus)` */
-open class ConvertJoinFold<T, R>(override val initial: R, private val append: R.(T) -> R): ConvertFold<T, R, R>() {
-  override fun join(base: R, value: T) = base.append(value)
-  override fun convert(base: R) = base
-}
-class JoinFold<T>(initial: T, append: T.(T) -> T): ConvertJoinFold<T, T>(initial, append)
-
-typealias InfixJoin<T> = (T, T) -> T
-
 //// == Abstract ==
 // EffectFold { makeBase, onAccept }
 // ConvertFold { initial, join, convert }
-// JoinFold(initial, append)
 
 fun <T, R> Iterable<T>.fold(fold: Fold<T, R>): R {
   val reducer = fold.reducer()
@@ -51,15 +41,30 @@ fun <T, R> Iterable<T>.fold(fold: Fold<T, R>): R {
   return reducer.finish()
 }
 
-//// == asList & asString ==
-fun <T> asList() = object: EffectFold<T, MutableList<T>, List<T>>() {
-  override fun makeBase(): MutableList<T> = mutableListOf()
-  override fun onAccept(base: MutableList<T>, value: T) { base.add(value) }
-}
+//// == ConvertJoinFold & JoinFold ==
+typealias InfixJoin<T> = (T, T) -> T
 
-abstract class  AsStringBuild<T>: ConvertFold<T, StringBuilder, String>() {
+/** Shorthand for [ConvertFold], use like `JoinFold(initial = 0,  append = Int::plus)` */
+open class ConvertJoinFold<T, R>(override val initial: R, private val append: R.(T) -> R): ConvertFold<T, R, R>() {
+  override fun join(base: R, value: T) = base.append(value)
+  override fun convert(base: R) = base
+}
+class JoinFold<T>(initial: T, append: T.(T) -> T): ConvertJoinFold<T, T>(initial, append)
+
+//// == asList & asString ==
+abstract class AsListAccept<T, A>: EffectFold<T, MutableList<A>, List<A>>() {
+  override fun makeBase(): MutableList<A> = mutableListOf()
+}
+abstract class AsStringBuild<T>: ConvertFold<T, StringBuilder, String>() {
   override val initial get() = StringBuilder()
   override fun convert(base: StringBuilder) = base.toString()
+}
+
+fun <T> asList() = object: AsListAccept<T, T>() {
+  override fun onAccept(base: MutableList<T>, value: T) { base.add(value) }
+}
+fun <T> flattenAsList() = object: AsListAccept<List<T>, T>() {
+  override fun onAccept(base: MutableList<T>, value: List<T>) { base.addAll(value) }
 }
 
 fun asString() = object: AsStringBuild<Char>() {

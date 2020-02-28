@@ -4,8 +4,6 @@ package org.parserkt.util
 interface Preety {
   fun toPreetyDoc(): Doc
 
-  interface DocWrapper { val item: Doc }
-  interface DocsWrapper { val items: List<Doc> }
   sealed class Doc {
     object Null: Doc()
     object None: Doc()
@@ -24,22 +22,25 @@ interface Preety {
       is SurroundBy -> visitor.see(this)
     }
     interface Visitor<out R> {
-        fun see(t: Doc.Null): R
-        fun see(t: Doc.None): R
-        fun see(t: Doc.Text): R
-        fun see(t: Doc.JoinBy): R
-        fun see(t: Doc.SurroundBy): R
+      fun see(t: Doc.Null): R
+      fun see(t: Doc.None): R
+      fun see(t: Doc.Text): R
+      fun see(t: Doc.JoinBy): R
+      fun see(t: Doc.SurroundBy): R
     }
 
     override fun toString() = visitBy(DocShow)
-    private object DocShow: Visitor<String> {
-      override fun see(t: Doc.Null) = "null"
-      override fun see(t: Doc.None) = ""
-      override fun see(t: Doc.Text) = t.obj.toString()
-      override fun see(t: Doc.JoinBy) = t.items.joinToString(t.sep.show(), transform = { it.show() })
-      override fun see(t: Doc.SurroundBy) = "${t.lr.first.show()}${t.item.show()}${t.lr.second.show()}"
-      private fun Doc.show() = visitBy(DocShow)
-    }
+  }
+  interface DocWrapper { val item: Doc }
+  interface DocsWrapper { val items: List<Doc> }
+
+  private object DocShow: Doc.Visitor<String> {
+    override fun see(t: Doc.Null) = "null"
+    override fun see(t: Doc.None) = ""
+    override fun see(t: Doc.Text) = t.obj.toString()
+    override fun see(t: Doc.JoinBy) = t.items.joinToString(t.sep.show(), transform = { it.show() })
+    override fun see(t: Doc.SurroundBy) = "${t.lr.first.show()}${t.item.show()}${t.lr.second.show()}"
+    private fun Doc.show() = visitBy(DocShow)
   }
 }
 
@@ -56,7 +57,10 @@ fun Iterable<*>.preety() = map(Any?::preety)
 
 fun PP.surround(lr: MonoPair<PP>) = Preety.Doc.SurroundBy(lr, this)
 fun List<PP>.join(sep: PP) = Preety.Doc.JoinBy(sep, this)
-operator fun PP.plus(other: PP) = listOf(this, other).join(Preety.Doc.None)
+fun List<PP>.joinNone() = join(Preety.Doc.None)
+operator fun PP.plus(other: PP)
+  = if (this is Preety.Doc.JoinBy) (items + other).joinNone()
+  else listOf(this, other).joinNone()
 
 fun PP.surroundText(lr: MonoPair<String>) = surround(lr.map(Any?::preety))
 fun List<PP>.joinText(sep: String) = join(sep.preety())
@@ -72,6 +76,7 @@ val squares = "[" paired "]"
 val braces = "{" paired "}"
 val quotes = "'" paired "'"
 val dquotes = "\"" paired "\""
+val bquotes = "`" paired "`"
 
 //// == Raw Strings ==
 fun CharSequence.prefixTranslate(map: Map<Char, Char>, prefix: String)
