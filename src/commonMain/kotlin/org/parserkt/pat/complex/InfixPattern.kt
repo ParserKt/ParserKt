@@ -22,7 +22,7 @@ fun <T> KeywordPattern<InfixOp<T>>.register(op: InfixOp<T>) { this[op.name] = op
 /** Pattern for infix chain like `1 + 2 * 3`  */
 open class InfixPattern<IN, ATOM>(val atom: Pattern<IN, ATOM>, val op: Pattern<IN, InfixOp<ATOM>>): PreetyPattern<IN, ATOM>() {
   protected open fun rescue(s: Feed<IN>, base: ATOM, op1: InfixOp<ATOM>): ATOM? = notParsed.also { s.error("infix $base parse failed at $op1") }
-  override fun toPreetyDoc() = listOf("InfixChain", op).preety().colonParens()
+  override fun toPreetyDoc(): PP = listOf("InfixChain", op).preety().colonParens()
 
   override fun read(s: Feed<IN>): ATOM? {
     val base = atom.read(s) ?: return notParsed

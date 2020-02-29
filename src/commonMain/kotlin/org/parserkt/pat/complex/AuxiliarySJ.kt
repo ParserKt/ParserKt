@@ -9,7 +9,7 @@ import org.parserkt.pat.*
 // SurroundBy(surround: Pair<ConstantPattern?, ConstantPattern?>, item)
 
 typealias SurroundPair<IN, T> = Pair<ConstantPattern<IN, T>?, ConstantPattern<IN, T>?>
-class SurroundBy<IN, T, SURR>(val surround: SurroundPair<IN, SURR>, item: Pattern<IN, T>): PatternWrapper<IN, T>(item) {
+class SurroundBy<IN, SURR, T>(val surround: SurroundPair<IN, SURR>, item: Pattern<IN, T>): PatternWrapper<IN, T>(item) {
   override fun read(s: Feed<IN>): T? {
     val (left, right) = surround
     if (left != null) left.read(s) ?: return notParsed
@@ -26,19 +26,20 @@ class SurroundBy<IN, T, SURR>(val surround: SurroundPair<IN, SURR>, item: Patter
     rightV?.let { right!!.show(s, it) }
   }
   override fun wrap(item: Pattern<IN, T>) = SurroundBy(surround, item)
-  override fun toPreetyDoc() = item.preety().surround(surround.first.preetyOrNone() to surround.second.preetyOrNone())
+  override fun toPreetyDoc(): PP = item.preety().surround(surround.first.preetyOrNone() to surround.second.preetyOrNone())
 }
 
 //// == Surround Shorthands ==
-infix fun <IN, T, SURR> Pattern<IN, T>.prefix(item: ConstantPattern<IN, SURR>) = SurroundBy(item to null, this)
-infix fun <IN, T, SURR> Pattern<IN, T>.suffix(item: ConstantPattern<IN, SURR>) = SurroundBy(null to item, this)
+infix fun <IN, SURR, T> Pattern<IN, T>.prefix(item: ConstantPattern<IN, SURR>) = SurroundBy(item to null, this)
+infix fun <IN, SURR, T> Pattern<IN, T>.suffix(item: ConstantPattern<IN, SURR>) = SurroundBy(null to item, this)
 
 // JoinBy(sep, item) { onItem, onSep; Rescue(rescue), AddListeners(onItem, onSep), OnItem(onItem) }
 
 typealias DoubleList<A, B> = Tuple2<List<A>, List<B>>
-open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, val item: Pattern<IN, ITEM>): PreetyPattern<IN, DoubleList<ITEM, SEP>>() {
+open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, override val item: Pattern<IN, ITEM>): PreetyPattern<IN, DoubleList<ITEM, SEP>>(),
+    PatternWrapperKind<IN, ITEM> {
   protected open fun rescue(s: Feed<IN>, doubleList: DoubleList<ITEM, SEP>): ITEM? = notParsed.also { s.error("expecting item for last seprator $sep") }
-  override fun toPreetyDoc() = listOf(item, sep).preety().joinText("...").surroundText(braces)
+  override fun toPreetyDoc(): PP = listOf(item, sep).preety().joinText("...").surroundText(braces)
 
   override fun read(s: Feed<IN>): DoubleList<ITEM, SEP>? {
     val items: MutableList<ITEM> = mutableListOf()
