@@ -29,7 +29,7 @@ open class TreeRangeMap<N, T>: MutableRangeMap<N, T> where N: Comparable<N> {
 
     override fun compareTo(other: Ray<N, *>) = start.compareTo(other.start)
     override fun equals(other: Any?) = compareUsing(other) { start == it.start }
-    override fun hashCode(): Int = Ray::class.hashCode()
+    override fun hashCode(): Int = hash(start)
   }
 }
 

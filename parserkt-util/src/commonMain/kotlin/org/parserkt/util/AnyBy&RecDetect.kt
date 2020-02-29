@@ -10,14 +10,15 @@ inline fun <reified T: Any> T.compareUsing(other: Any?, crossinline compare: T.(
   if (this === other) return true
   return other is T && compare(other)
 }
-fun hash(vararg values: Any?): Int = values.contentHashCode()
+fun hash(vararg values: Any?) = values.contentHashCode()
+fun hash(value: Any?) = value.hashCode()
 
 /** Transparent delegate for [Any] */
 open class AnyBy(val obj: Any): Eq {
   override fun equals(other: Any?)
     = if (other is AnyBy) obj == other.obj
     else obj == other
-  override fun hashCode() = obj.hashCode()
+  override fun hashCode() = hash(obj)
   override fun toString() = obj.toString()
 }
 

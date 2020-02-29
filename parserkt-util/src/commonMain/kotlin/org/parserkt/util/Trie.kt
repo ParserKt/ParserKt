@@ -41,9 +41,9 @@ open class Trie<K, V>(var value: V?) { constructor(): this(null)
 //// == Abstract ==
 fun <K, V> Trie<K, V>.toMap() = collectKeys().associate { it to this[it]!! }
 
-operator fun <V> Trie<Char, V>.get(index: CharSequence) = this[index.asIterable()]
-operator fun <V> Trie<Char, V>.set(index: CharSequence, value: V) { this[index.asIterable()] = value }
-operator fun <V> Trie<Char, V>.contains(index: CharSequence) = index.asIterable() in this
+operator fun <V> Trie<Char, V>.get(key: CharSequence) = this[key.asIterable()]
+operator fun <V> Trie<Char, V>.set(key: CharSequence, value: V) { this[key.asIterable()] = value }
+operator fun <V> Trie<Char, V>.contains(key: CharSequence) = key.asIterable() in this
 
 fun <K, V> Trie<K, V>.merge(vararg kvs: Pair<Iterable<K>, V>) {
   for ((k, v) in kvs) this[k] = v
@@ -52,8 +52,8 @@ fun <V> Trie<Char, V>.mergeStrings(vararg kvs: Pair<CharSequence, V>) {
   for ((k, v) in kvs) this[k] = v
 }
 
-//// == Helper for funs like setNocase ==
-fun <K, V> Trie<K, V>.getOrCreatePaths(key: Iterable<K>, layer: (K) -> List<K>): List<Trie<K, V>>
+/** Create multiply route in path to [index], helper for functions like `setNocase` */
+fun <K, V> Trie<K, V>.getOrCreatePaths(key: Iterable<K>, layer: (K) -> Iterable<K>): List<Trie<K, V>>
   = key.fold(listOf(this)) { points, k ->
     points.flatMap { point ->
       layer(k).map { point.routes.getOrPut(it, ::Trie) }
