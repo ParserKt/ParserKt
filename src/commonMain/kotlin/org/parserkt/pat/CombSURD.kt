@@ -88,7 +88,7 @@ open class Repeat<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>): FoldPattern
   }
   override fun toPreetyDoc(): PP = item.preety().surroundText(braces)
 
-  // "repeat many" (0..MAX) - Repeat(...).Many(); Repeat(...).InBounds(0..n, greedy = true)
+  // "repeat many" (0..MAX) - Repeat(pat).Many(); Repeat(pat).InBounds(0..n, greedy = true)
   protected open val greedy = true
   protected open val bounds = 1..Cnt.MAX_VALUE
 
@@ -117,10 +117,10 @@ class Decide<IN, T>(vararg val cases: Pattern<IN, out T>): PreetyPattern<IN, Tup
 
 // "rebuild" - UntilUn(+unfold), RepeatUn(+unfold)
 
-class UntilUn<IN, T, R>(terminate: ConstantPattern<IN, T>, fold: Fold<T, R>, item: Pattern<IN, T>, val unfold: (R) -> Iterable<T>): Until<IN, T, R>(terminate, fold, item) {
+class UntilUn<IN, T, R>(terminate: ConstantPattern<IN, T>, fold: Fold<T, R>, item: Pattern<IN, T>, private val unfold: (R) -> Iterable<T>): Until<IN, T, R>(terminate, fold, item) {
   override fun unfold(value: R) = unfold.invoke(value)
 }
-class RepeatUn<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>, val unfold: (R) -> Iterable<T>): Repeat<IN, T, R>(fold, item) {
+class RepeatUn<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>, private val unfold: (R) -> Iterable<T>): Repeat<IN, T, R>(fold, item) {
   override fun unfold(value: R) = unfold.invoke(value)
 }
 

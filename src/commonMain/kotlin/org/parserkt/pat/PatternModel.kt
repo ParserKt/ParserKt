@@ -18,7 +18,7 @@ interface Pattern<IN, T>: Preety {
 }
 interface OptionalPatternKind<T> { val defaultValue: T }
 interface PatternWrapperKind<IN, T> { val item: Pattern<IN, T> }
-interface ConstantPattern<IN, T>: Pattern<IN, T> { val constant: T }
+interface ConstantPatternKind<T> { val constant: T }
 
 // == Patterns ==
 // SURDIES (Seq, Until, Repeat, Decide) (item, elementIn, satisfy, StickyEnd) (always, never)
@@ -72,14 +72,24 @@ open class OptionalPattern<IN, T>(override val item: Pattern<IN, T>, override va
   override fun toPreetyDoc() = listOf(item.preety(), defaultValue.rawPreety()).joinText("?:")
 }
 
+class ConstantToDefault<IN, T>(override val item: ConstantPattern<IN, T>, defaultValue: T): OptionalPattern<IN, T>(item, defaultValue),
+    ConstantPattern<IN, T> {
+  override val constant get() = item.constant
+}
+
 fun <IN, T> Pattern<IN, T>.toDefault(defaultValue: T) = OptionalPattern(this, defaultValue)
-fun <IN, T> ConstantPattern<IN, T>.toDefault() = toDefault(constant)
+fun <IN, T> ConstantPattern<IN, T>.toDefault() = ConstantToDefault(this, constant)
 
 //// == PatternWrapper / SatisfyPatternBy ==
 
 abstract class ConvertPatternWrapper<IN, T, T1>(override val item: Pattern<IN, T>): PreetyPattern<IN, T1>(), PatternWrapperKind<IN, T> {
   abstract fun wrap(item: Pattern<IN, T>): ConvertPatternWrapper<IN, T, T1>
   override fun toPreetyDoc() = item.toPreetyDoc()
+}
+
+abstract class PatternWrapper<IN, T>(item: Pattern<IN, T>): ConvertPatternWrapper<IN, T, T>(item) {
+  override fun read(s: Feed<IN>) = item.read(s)
+  override fun show(s: Output<IN>, value: T?) = item.show(s, value)
 }
 
 abstract class SatisfyPatternBy<IN>(protected open val self: SatisfyPattern<IN>): SatisfyPattern<IN>() {
@@ -90,11 +100,6 @@ abstract class SatisfyPatternBy<IN>(protected open val self: SatisfyPattern<IN>)
 }
 
 //// == Pattern Wrappers (not, clam) ==
-abstract class PatternWrapper<IN, T>(item: Pattern<IN, T>): ConvertPatternWrapper<IN, T, T>(item) {
-  override fun read(s: Feed<IN>) = item.read(s)
-  override fun show(s: Output<IN>, value: T?) = item.show(s, value)
-}
-
 inline operator fun <reified IN, T> MonoPatternWrapper<IN, T>.not() = wrap(!(item as SatisfyPattern<IN>))
 inline fun <reified IN, T> MonoPatternWrapper<IN, T>.clam(noinline messager: ErrorMessager) = wrap((item as SatisfyPattern<IN>).clam(messager))
 
@@ -104,6 +109,8 @@ inline operator fun <reified IN, T> PatternWrapper<IN, T>.not() = wrap(!(item as
 inline fun <reified IN, T> PatternWrapper<IN, T>.clam(noinline messager: ErrorMessager) = wrap((item as ConvertPatternWrapper<IN, IN, T>).clam(messager))
 
 //// == Constant Pattern (toConstant) ==
+interface ConstantPattern<IN, T>: Pattern<IN, T>, ConstantPatternKind<T>
+
 class PatternToConstant<IN, T>(self: Pattern<IN, T>, override val constant: T): Pattern<IN, T> by self, ConstantPattern<IN, T>
 class SatisfyToConstant<IN>(self: SatisfyPattern<IN>, override val constant: IN): SatisfyPatternBy<IN>(self), MonoConstantPattern<IN>
 
@@ -151,6 +158,7 @@ fun <IN, T> Pattern<IN, T>.show(value: T?): List<IN>? {
 }
 fun <IN, T> Pattern<IN, T>.rebuild(vararg items: IN) = show(read(*items))
 fun <IN, T> Pattern<IN, T>.rebuild(vararg items: IN, operation: ActionOn<T>) = show(read(*items)?.apply(operation))
+
 
 fun Pattern<Char, *>.test(value: Char) = read(SingleFeed(value)) != notParsed
 fun <IN> Pattern<IN, *>.test(value: IN) = read(SingleFeed(value)) != notParsed
