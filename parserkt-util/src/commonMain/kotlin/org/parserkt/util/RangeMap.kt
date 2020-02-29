@@ -7,7 +7,11 @@ interface ExclusiveRange<T> where T: Comparable<T> {
 }
 
 abstract class BaseExclusiveRange<T>(override val start: T, override val stop: T): ExclusiveRange<T> where T: Comparable<T> {
-  override fun equals(other: Any?) = compareUsing(other) { start == it.start && stop == it.stop }
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    return other is ExclusiveRange<*> && start == other.start && stop == other.stop
+    // See also https://youtrack.jetbrains.com/issue/KT-37128
+  }
   override fun hashCode() = hash(start, stop)
   override fun toString() = "($start, $stop]"
 }
