@@ -20,7 +20,7 @@ data class SourceLocation(val file: String, var line: Cnt, var column: Cnt, var 
   val tag get() = listOf(file, line, column).preety().joinText(":")
   fun clone() = copy(file = file, line = line, column = column, position = position)
 
-  override fun toPreetyDoc() = tag + ("#".preety() + position)
+  override fun toPreetyDoc(): PP = tag + ("#".preety() + position)
   override fun toString() = toPreetyDoc().toString()
 }
 
