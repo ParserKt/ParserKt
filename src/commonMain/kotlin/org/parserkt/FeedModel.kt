@@ -26,6 +26,7 @@ fun <IN> Feed<IN>.asSequence(): Sequence<IN>
   = sequence { while (true) yield(consumeOrNull() ?: break) }
 fun <IN> Feed<IN>.asIterable() = asSequence().asIterable()
 fun <IN> Feed<IN>.toList() = asIterable().toList()
+
 // - Feed cannot be constructed using empty input
 fun Feed<Char>.readText() = asIterable().joinToString("")
 // - Feed.peek will yield last item *again* when EOS reached
@@ -43,6 +44,7 @@ fun <R> AllFeed.catchError(op: Producer<R>): R? = try { op() } catch (e: Excepti
 open class SliceFeed<T>(private val slice: Slice<T>): PreetyFeed<T>() {
   init { require(slice.isNotEmpty) {"empty input"} }
   protected var position = 0
+
   override val peek get() = try { slice[position] }
     catch (_: IndexOutOfBoundsException) { slice[slice.lastIndex] }
   override fun consume() = try { slice[position++] }

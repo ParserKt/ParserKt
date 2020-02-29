@@ -53,7 +53,7 @@ open class CharInput(feed: Feed<Char>, file: String): Input<Char>(feed), SourceL
   override fun onItem(item: Char) {
     if (isCRLF && item == '\r' && peek == '\n') when (eol) {
       '\r' -> { consume(); newLine() }
-      '\n' -> newLine()
+      '\n' -> newLine() // LF will be first char of line
     } else when (item) {
       eol -> newLine()
       else -> { ++sourceLoc.column }
@@ -71,6 +71,7 @@ open class CharInput(feed: Feed<Char>, file: String): Input<Char>(feed), SourceL
   }
 }
 
+/** Input with [ErrorListener] inherited from [parent] */
 class FilterInput<T>(val parent: AllFeed, feed: Feed<T>): Input<T>(feed) {
   init { onError = (parent as? ErrorListener)?.onError ?: onError }
   override fun toPreetyDoc() = parent.toPreetyDoc()
