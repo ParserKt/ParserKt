@@ -43,11 +43,11 @@ Don't be scared! ParserKt is just a small library, even full-build won't take to
 // item(x), elementIn('a'..'z'), satisfy<Int> { it % 2 == 0 }, ...
 // asList(), asString(), ...
 import org.parserkt.*
-import org.parserkt.pat.*
 import org.parserkt.util.*
+import org.parserkt.pat.*
 ```
 
-Import main, `pat`, `util`, then we can implement our own combined pattern! (for a more in depth sample, see link at <a href="#header">header</a>)
+Import `parserkt`, `util`, `pat`, then we can implement our own combined pattern! (for a more in depth sample, see link at <a href="#header">header</a>)
 
 ```kotlin
 val digits = Repeat(asList(), elementIn('0'..'9')) //{[0-9]}
@@ -205,9 +205,10 @@ goodXsv.rebuild("she,her,herself") //she,her,herself
 ParserKt provides `mergeFirst/Second`, `discardFirst/Second`, `flatten` for `Tuple2` pattern converting :kissing_heart:
 
 ```kotlin
+import org.parserkt.*
+import org.parserkt.util.*
 import org.parserkt.pat.*
 import org.parserkt.pat.complex.*
-import org.parserkt.util.*
 
 val dict = TriePattern<Char, String>().apply {
   mergeStrings("hello" to "こんにちは")
@@ -219,6 +220,8 @@ noun.read("helloworld") //[こんにちは, 世界]
 val pharse = JoinBy(Decide(elementIn('0'..'9'), elementIn(' ', '\t', '\n', '\r')), dict)
 pharse.read("hello6world hello") //Tuple2(first=[こんにちは, 世界, こんにちは], second=[Tuple2(first=0, second=6), Tuple2(first=1, second= )])
 ```
+
+It's OK (and also easy) to read recursive structure, just defined `lateinit var` and use `Deferred{name}` to reference:
 
 ```kotlin
 // Back converts (third argument for Convert) are optional
