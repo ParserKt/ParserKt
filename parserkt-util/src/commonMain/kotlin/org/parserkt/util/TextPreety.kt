@@ -63,7 +63,7 @@ fun List<PP>.joinText(sep: String) = join(sep.preety())
 fun List<PP>.joinNone() = join(Preety.Doc.None)
 
 operator fun PP.plus(other: PP): PP
-  = if (this is Preety.Doc.JoinBy) (items + other).joinNone()
+  = if (this is Preety.Doc.JoinBy && this.sep == Preety.Doc.None) (items + other).joinNone()
   else listOf(this, other).joinNone()
 operator fun PP.plus(other: Any?) = this + other.preety()
 

@@ -11,7 +11,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 allprojects {
   group "org.parserkt"
-  version "2.0"
+  version "2.1"
 
   apply plugin: "kotlin-multiplatform"
 

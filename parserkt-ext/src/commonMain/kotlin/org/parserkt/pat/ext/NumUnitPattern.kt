@@ -9,9 +9,9 @@ import org.parserkt.pat.complex.PairedTriePattern
 typealias NumUnit<NUM, IN> = Pair<NUM, Iterable<IN>>
 
 /*
-val n=RepeatUn(asInt(), digitFor('0'..'9')) { it.toString().map { it-'0' } }
-val u=KeywordPattern<Int>().apply { mergeStrings("s" to 1, "min" to 60, "hr" to 60*60) }
-val k=TrieNumUnit(n, u, IntOps)
+val num = RepeatUn(asInt(), LexicalBasics.digitFor('0'..'9')) { it.toString().map { it-'0' } }
+val timeUnit = PairedKeywordPattern<Int>().apply { mergeStrings("s" to 1, "min" to 60, "hr" to 60*60) }
+val time = TrieNumUnit(num, timeUnit, IntOps)
 */
 
 /** Pattern for `"2hr1min14s"`, note that reverse map won't be updated every [show] */
@@ -26,7 +26,7 @@ abstract class NumUnitPattern<IN, NUM: Comparable<NUM>>(val number: Pattern<IN, 
     while (i != notParsed) { // i=num, k=unit
       val k = unit.read(s) ?: rescue(s, accumulator, i) ?: return notParsed
       val unit = reversedPairsDsc.first { it.first == k }
-      accumulator = (if (lastUnit == null) joinUnitsInitial(s, k, i)
+      accumulator = (if (lastUnit == null) joinUnitsInitial(s, k, i) ?: return notParsed
         else joinUnits(s, lastUnit, unit, accumulator, i)) ?: return accumulator
       lastUnit = unit //->
       i = number.read(s)

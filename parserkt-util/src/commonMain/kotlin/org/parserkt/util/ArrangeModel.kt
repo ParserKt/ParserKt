@@ -85,6 +85,7 @@ open class StringTuple(size: Cnt): Tuple<String>(size) { override val items = Ar
 
 fun <T, TUPLE: Tuple<T>> tupleOf(type: (Cnt) -> TUPLE, vararg items: T): TUPLE {
   val tuple = type(items.size)
+  require(tuple.size >= items.size) {"tuple size too small (${tuple.size} for ${items.size})"}
   for ((i, x) in items.withIndex()) tuple[i] = x
   return tuple
 }
