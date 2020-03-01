@@ -5,7 +5,7 @@ import org.parserkt.util.*
 import org.parserkt.pat.complex.TriePattern
 import org.parserkt.pat.complex.PairedTriePattern
 
-//// == BackTrie, DictTrie, LazyTrie, GreedyTrie ==
+//// == BackTrie, DictTrie, LazyPairedTrie, GreedyPairedTrie ==
 abstract class BackTrie<K, V>: PairedTriePattern<K, V>() {
   abstract fun split(value: V): Iterable<K>
   abstract fun join(parts: Iterable<K>): V
@@ -16,12 +16,12 @@ abstract class BackTrie<K, V>: PairedTriePattern<K, V>() {
   }
 }
 
-open class PairedDictTrie: BackTrie<Char, String>() {
+open class DictTrie: BackTrie<Char, String>() {
   override fun split(value: String) = value.asIterable()
   override fun join(parts: Iterable<Char>) = parts.joinToString("")
 }
 
-open class PairedLazyTrie<V>(private val op: (String) -> V?): PairedTriePattern<Char, V>() {
+open class LazyPairedTrie<V>(private val op: (String) -> V?): PairedTriePattern<Char, V>() {
   private val currentPath = StringBuilder()
   private fun clear() { currentPath.clear() }
   override fun onItem(value: Char) { currentPath.append(value) }
@@ -32,7 +32,7 @@ open class PairedLazyTrie<V>(private val op: (String) -> V?): PairedTriePattern<
   }
 }
 
-open class PairedGreedyTrie(private val predicate: Predicate<Char>): PairedLazyTrie<String>({ it.takeIf(String::isNotEmpty) }) {
+open class GreedyPairedTrie(private val predicate: Predicate<Char>): LazyPairedTrie<String>({ it.takeIf(String::isNotEmpty) }) {
   override fun read(s: Feed<Char>) = super.read(s) ?: s.takeWhileNotEnd { it !in routes && predicate(it) }
     .joinToString("").takeIf { it.isNotEmpty() || s.peek in routes && !isEOS }
   override fun onEOS() { _isEOS = true }

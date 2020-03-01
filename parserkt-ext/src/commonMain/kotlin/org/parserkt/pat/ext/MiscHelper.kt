@@ -117,7 +117,7 @@ open class TextPattern<T>(item: Pattern<Char, String>, val regex: Regex, val tra
   override fun toPreetyDoc() = item.toPreetyDoc() + regex.preety().surroundText("/" to "/")
 }
 
-/** Old-style lexer-parser token stream split by [tokenizer] */
+/** Old-style lexer-parser token stream split by [tokenizer], end by [eof] */
 abstract class LexerFeed<TOKEN>(feed: Feed<Char>): StreamFeed<TOKEN, TOKEN?, Feed<Char>>(feed) {
   abstract fun tokenizer(): Pattern<Char, TOKEN>
   protected abstract val eof: TOKEN

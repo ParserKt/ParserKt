@@ -11,7 +11,7 @@ typealias NumUnit<NUM, IN> = Pair<NUM, Iterable<IN>>
 /*
 val n=RepeatUn(asInt(), digitFor('0'..'9')) { it.toString().map { it-'0' } }
 val u=KeywordPattern<Int>().apply { mergeStrings("s" to 1, "min" to 60, "hr" to 60*60) }
-val k=NumUnitTrie(n, u, IntOps)
+val k=TrieNumUnit(n, u, IntOps)
 */
 
 /** Pattern for `"2hr1min14s"`, note that reverse map won't be updated every [show] */
@@ -57,7 +57,7 @@ abstract class NumUnitPattern<IN, NUM: Comparable<NUM>>(val number: Pattern<IN, 
   protected open fun joinUnitsShow(s: Output<IN>, u0: NumUnit<NUM, IN>, u1: NumUnit<NUM, IN>) {}
 }
 
-open class NumUnitTrie<IN, NUM: Comparable<NUM>>(number: Pattern<IN, NUM>, override val unit: PairedTriePattern<IN, NUM>,
+open class TrieNumUnit<IN, NUM: Comparable<NUM>>(number: Pattern<IN, NUM>, override val unit: PairedTriePattern<IN, NUM>,
     op: NumOps<NUM>): NumUnitPattern<IN, NUM>(number, unit, op) {
   override val map get() = unit.map
 }
