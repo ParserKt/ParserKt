@@ -37,7 +37,7 @@ open class LayoutPattern<IN, T, L>(val item: Pattern<IN, T>, val tail: Pattern<I
   protected open val layoutZero = 0
   protected open fun rescueLayout(s: Feed<IN>, parsed: T): Int? = notParsed
   protected open fun rescueLayout(s: Feed<IN>, parsed: T, parsedTail: L): Int? = notParsed
-  override fun toPreetyDoc() = listOf("Layout", item, tail, layout).preety().colonParens()
+  override fun toPreetyDoc(): PP = listOf("Layout", item, tail, layout).preety().colonParens()
 
   /** [Pattern.show] for resulting pattern should be general, since [show] does not use this function */
   protected open fun decideLayerItem(parsed: T, parsedTail: L): Pattern<IN, T> = item

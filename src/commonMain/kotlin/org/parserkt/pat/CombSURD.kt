@@ -93,7 +93,7 @@ open class Repeat<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>): FoldPattern
   protected open val bounds = 1..Cnt.MAX_VALUE
 
   open inner class InBounds(override val bounds: IntRange, override val greedy: Boolean = true): Repeat<IN, T, R>(fold, item) {
-    override fun toPreetyDoc() = listOf( super.toPreetyDoc(),
+    override fun toPreetyDoc(): PP = listOf( super.toPreetyDoc(),
       (bounds as Any).preety().surroundText(parens) ).join(if (greedy) "g".preety() else Preety.Doc.None)
   }
   inner class Many: InBounds(0..Cnt.MAX_VALUE), OptionalPatternKind<R> {

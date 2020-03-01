@@ -50,7 +50,7 @@ abstract class NumUnitPattern<IN, NUM: Comparable<NUM>>(val number: Pattern<IN, 
   protected abstract val map: Map<Iterable<IN>, NUM>
   protected val reversedPairsDsc by lazy { map.reversedMap().toList().sortedByDescending { it.first } }
   protected fun maxCmpLE(value: NUM) = reversedPairsDsc.first { it.first <= value }
-  override fun toPreetyDoc() = listOf("NumUnit", number, unit).preety().colonParens()
+  override fun toPreetyDoc(): PP = listOf("NumUnit", number, unit).preety().colonParens()
 
   protected open fun joinUnitsInitial(s: Feed<IN>, k: NUM, i: NUM): NUM? = op.times(k, i)
   protected open fun joinUnits(s: Feed<IN>, u0: NumUnit<NUM, IN>, u1: NumUnit<NUM, IN>, acc: NUM, i: NUM): NUM? = op.run { plus(times(u1.first, i), acc) }

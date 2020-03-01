@@ -95,7 +95,7 @@ abstract class LexicalBasics {
 
     inline fun <reified T, T0> itemTyped(crossinline predicate: Predicate<T> = {true}) where T: T0 = object: SatisfyPattern<T0>() {
       override fun test(value: T0) = value is T && predicate(value)
-      override fun toPreetyDoc() = T::class.preety().surroundText(parens)
+      override fun toPreetyDoc(): PP = T::class.simpleName.preety().surroundText(parens)
     }
   }
 
@@ -114,7 +114,7 @@ open class TextPattern<T>(item: Pattern<Char, String>, val regex: Regex, val tra
   override fun read(s: Feed<Char>): T? = item.read(s)?.let { regex.find(it)?.groupValues?.let(transform) }
   override open fun show(s: Output<Char>, value: T?) {}
   override fun wrap(item: Pattern<Char, String>) = TextPattern(item, regex, transform)
-  override fun toPreetyDoc() = item.toPreetyDoc() + regex.preety().surroundText("/" to "/")
+  override fun toPreetyDoc(): PP = item.toPreetyDoc() + regex.preety().surroundText("/" to "/")
 }
 
 /** Old-style lexer-parser token stream split by [tokenizer] */
