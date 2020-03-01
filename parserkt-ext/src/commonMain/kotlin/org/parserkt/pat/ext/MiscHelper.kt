@@ -95,7 +95,7 @@ abstract class LexicalBasics {
 
     inline fun <reified T, T0> itemTyped(crossinline predicate: Predicate<T> = {true}) where T: T0 = object: SatisfyPattern<T0>() {
       override fun test(value: T0) = value is T && predicate(value)
-      override fun toPreetyDoc(): PP = T::class.simpleName.preety().surroundText(parens)
+      override fun toPreetyDoc(): PP = T::class.preety().surroundText(parens)
     }
   }
 

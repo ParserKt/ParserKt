@@ -55,15 +55,16 @@ fun Any?.preetyOrNone() = preetyOr(Preety.Doc.None)
 fun Any?.preety() = preetyOr(Preety.Doc.Null)
 fun Iterable<*>.preety() = map(Any?::preety)
 
-fun PP.surround(lr: MonoPair<PP>) = Preety.Doc.SurroundBy(lr, this)
-fun List<PP>.join(sep: PP) = Preety.Doc.JoinBy(sep, this)
-fun List<PP>.joinNone() = join(Preety.Doc.None)
-operator fun PP.plus(other: PP)
-  = if (this is Preety.Doc.JoinBy) (items + other).joinNone()
-  else listOf(this, other).joinNone()
+fun PP.surround(lr: MonoPair<PP>): PP = Preety.Doc.SurroundBy(lr, this)
+fun List<PP>.join(sep: PP): PP = Preety.Doc.JoinBy(sep, this)
 
 fun PP.surroundText(lr: MonoPair<String>) = surround(lr.map(Any?::preety))
 fun List<PP>.joinText(sep: String) = join(sep.preety())
+fun List<PP>.joinNone() = join(Preety.Doc.None)
+
+operator fun PP.plus(other: PP): PP
+  = if (this is Preety.Doc.JoinBy) (items + other).joinNone()
+  else listOf(this, other).joinNone()
 operator fun PP.plus(other: Any?) = this + other.preety()
 
 //// == Freuquently Used ==
@@ -93,7 +94,7 @@ internal val KOTLIN_ESCAPE = mapOf(
 )
 
 internal val ESCAPED_CHAR = Regex("""^\\.$""")
-fun String.rawString() = prefixTranslate(KOTLIN_ESCAPE, "\\").let {
+fun String.rawString(): PP = prefixTranslate(KOTLIN_ESCAPE, "\\").let {
   if (it.length == 1 || it.matches(ESCAPED_CHAR)) it.preety().surroundText(quotes)
   else it.preety().surroundText(dquotes)
 }
