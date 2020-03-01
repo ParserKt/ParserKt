@@ -20,7 +20,7 @@ class SingleFeed<T>(val value: T): Feed<T> {
 }
 
 /** Pattern of "folded" items, like [Until], [Repeat]. exceptions terminates read with [notParsed] */
-abstract class FoldPattern<IN, T, R>(val fold: Fold<T, R>, val item: Pattern<IN, T>): PreetyPattern<IN, R>() {
+abstract class FoldPattern<IN, T, R>(val fold: Fold<T, R>, override val item: Pattern<IN, T>): PreetyPattern<IN, R>(), PatternWrapperKind<IN, T> {
   protected open fun unfold(value: R): Iterable<T> = defaultUnfold(value)
   override fun show(s: Output<IN>, value: R?) {
     if (value == null) return
@@ -41,8 +41,9 @@ internal fun <R, T> defaultUnfold(value: R): Iterable<T> = @Suppress("unchecked_
 
 class Seq<IN, T, TUPLE: Tuple<T>>(val type: (Cnt) -> TUPLE, vararg val items: Pattern<IN, out T>): PreetyPattern<IN, TUPLE>() {
   constructor(type: Producer<TUPLE>, vararg items: Pattern<IN, out T>): this({ _ -> type() }, *items)
+  init { checkedTuple() }
   override fun read(s: Feed<IN>): TUPLE? {
-    val tuple = type(items.size)
+    val tuple = checkedTuple()
     for ((i, x) in items.withIndex()) tuple[i] = x.read(s) ?: return notParsed
     return tuple
   }
@@ -50,6 +51,11 @@ class Seq<IN, T, TUPLE: Tuple<T>>(val type: (Cnt) -> TUPLE, vararg val items: Pa
     if (value == null) return
     for ((i, v) in value.toArray().withIndex())
       @Suppress("unchecked_cast") (items[i] as Pattern<IN, in @UnsafeVariance T>).show(s, v)
+  }
+  private fun checkedTuple(): TUPLE {
+    val tuple = type(items.size)
+    require(tuple.size >= items.size) {"tuple size too small (${tuple.size} for ${items.size})"}
+    return tuple
   }
   override fun toPreetyDoc() = items.asIterable().preety().joinText(" ").surroundText(parens)
 }
@@ -84,7 +90,7 @@ open class Repeat<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>): FoldPattern
     if (value == null) return
     var count = 0
     unfold(value).forEach { item.show(s, it); ++count }
-    check(count in bounds) {"bad wrote count: $count"}
+    check(count in bounds) {"bad wrote count $count !in $bounds"}
   }
   override fun toPreetyDoc() = item.preety().surroundText(braces)
 

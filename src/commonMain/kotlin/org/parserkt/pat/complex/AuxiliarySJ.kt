@@ -64,7 +64,7 @@ open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, override val item: P
     val seprators = sepratorList.iterator()
     item.show(s, values.firstOrNull() ?: return)
     try { values.drop(1).forEach { sep.show(s, seprators.next()); item.show(s, it) } }
-    catch (_: NoSuchElementException) { error("missing seprator: ${sepratorList.size} vs. ${values.size}") }
+    catch (_: NoSuchElementException) { error("missing seprator: ${sepratorList.size} vs. ${values.size} items") }
   }
 
   protected open fun onItem(value: ITEM) {}
