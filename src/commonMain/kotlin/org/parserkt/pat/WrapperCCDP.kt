@@ -46,20 +46,20 @@ class Contextual<IN, HEAD, BODY>(val head: Pattern<IN, HEAD>, val body: (HEAD) -
     head.show(s, context)
     body(context).show(s, parsed)
   }
-  override fun toPreetyDoc(): PP = head.preety() + "@"
+  override fun toPreetyDoc() = head.preety() + "@"
 }
 
 class Deferred<IN, T>(val lazyItem: Producer<Pattern<IN, T>>): Pattern<IN, T>, RecursionDetect() {
   override fun read(s: Feed<IN>) = lazyItem().read(s)
   override fun show(s: Output<IN>, value: T?) = lazyItem().show(s, value)
-  override fun toPreetyDoc(): PP = lazyItem().toPreetyDoc()
+  override fun toPreetyDoc() = lazyItem().toPreetyDoc()
   override fun toString() = recurse { if (isActive) "recurse" else toPreetyDoc().toString() }
 }
 
 class Piped<IN, T>(item: Pattern<IN, T>, val op: Feed<IN>.(T?) -> T? = {it}): PatternWrapper<IN, T>(item) {
   override fun read(s: Feed<IN>): T? = item.read(s).let { s.op(it) }
   override fun wrap(item: Pattern<IN, T>) = Piped(item, op)
-  override fun toPreetyDoc(): PP = listOf("Piped", item).preety().colonParens()
+  override fun toPreetyDoc() = listOf("Piped", item).preety().colonParens()
 }
 
 // Tuple2: flatten(), mergeFirst(first: (B) -> A), mergeSecond(second: (A) -> B)

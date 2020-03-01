@@ -15,7 +15,7 @@ class SingleFeed<T>(val value: T): Feed<T> {
     = if (!valueConsumed)
       { valueConsumed = true; value }
     else throw Feed.End()
-  override fun toPreetyDoc(): PP = "SingleFeed".preety() + value.preety().surroundText(parens) +
+  override fun toPreetyDoc() = "SingleFeed".preety() + value.preety().surroundText(parens) +
     (if (valueConsumed) ".".preety() else Preety.Doc.None)
 }
 
@@ -51,7 +51,7 @@ class Seq<IN, T, TUPLE: Tuple<T>>(val type: (Cnt) -> TUPLE, vararg val items: Pa
     for ((i, v) in value.toArray().withIndex())
       @Suppress("unchecked_cast") (items[i] as Pattern<IN, in @UnsafeVariance T>).show(s, v)
   }
-  override fun toPreetyDoc(): PP = items.asIterable().preety().joinText(" ").surroundText(parens)
+  override fun toPreetyDoc() = items.asIterable().preety().joinText(" ").surroundText(parens)
 }
 
 open class Until<IN, T, R>(val terminate: Pattern<IN, *>, fold: Fold<T, R>, item: Pattern<IN, T>): FoldPattern<IN, T, R>(fold, item) {
@@ -63,7 +63,7 @@ open class Until<IN, T, R>(val terminate: Pattern<IN, *>, fold: Fold<T, R>, item
     }
     return reducer.finish()
   }
-  override fun toPreetyDoc(): PP = listOf(item, terminate).preety().joinText("~")
+  override fun toPreetyDoc() = listOf(item, terminate).preety().joinText("~")
 }
 internal fun <IN> Feed<IN>.singleFeed() = FilterInput(this, SingleFeed(peek))
 internal fun <IN, T> Pattern<IN, T>.testPeek(s: Feed<IN>) = read(s.singleFeed()) != notParsed
@@ -86,14 +86,14 @@ open class Repeat<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>): FoldPattern
     unfold(value).forEach { item.show(s, it); ++count }
     check(count in bounds) {"bad wrote count: $count"}
   }
-  override fun toPreetyDoc(): PP = item.preety().surroundText(braces)
+  override fun toPreetyDoc() = item.preety().surroundText(braces)
 
   // "repeat many" (0..MAX) - Repeat(pat).Many(); Repeat(pat).InBounds(0..n, greedy = true)
   protected open val greedy = true
   protected open val bounds = 1..Cnt.MAX_VALUE
 
   open inner class InBounds(override val bounds: IntRange, override val greedy: Boolean = true): Repeat<IN, T, R>(fold, item) {
-    override fun toPreetyDoc(): PP = listOf( super.toPreetyDoc(),
+    override fun toPreetyDoc() = listOf( super.toPreetyDoc(),
       (bounds as Any).preety().surroundText(parens) ).join(if (greedy) "g".preety() else Preety.Doc.None)
   }
   inner class Many: InBounds(0..Cnt.MAX_VALUE), OptionalPatternKind<R> {
@@ -112,7 +112,7 @@ class Decide<IN, T>(vararg val cases: Pattern<IN, out T>): PreetyPattern<IN, Tup
     val (i, state) = value
     @Suppress("unchecked_cast") (cases[i] as Pattern<IN, in @UnsafeVariance T>).show(s, state)
   }
-  override fun toPreetyDoc(): PP = cases.asIterable().preety().joinText("|").surroundText(parens)
+  override fun toPreetyDoc() = cases.asIterable().preety().joinText("|").surroundText(parens)
 }
 
 // "rebuild" - UntilUn(+unfold), RepeatUn(+unfold)

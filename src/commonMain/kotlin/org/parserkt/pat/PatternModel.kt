@@ -69,7 +69,7 @@ open class OptionalPattern<IN, T>(override val item: Pattern<IN, T>, override va
     OptionalPatternKind<T>, PatternWrapperKind<IN, T> {
   override fun read(s: Feed<IN>) = item.read(s) ?: defaultValue
   override fun show(s: Output<IN>, value: T?) = item.show(s, value)
-  override fun toPreetyDoc(): PP = listOf(item.preety(), defaultValue.rawPreety()).joinText("?:")
+  override fun toPreetyDoc() = listOf(item.preety(), defaultValue.rawPreety()).joinText("?:")
 }
 
 class ConstantToDefault<IN, T>(override val item: ConstantPattern<IN, T>, defaultValue: T): OptionalPattern<IN, T>(item, defaultValue),
@@ -84,7 +84,7 @@ fun <IN, T> ConstantPattern<IN, T>.toDefault() = ConstantToDefault(this, constan
 
 abstract class ConvertPatternWrapper<IN, T, T1>(override val item: Pattern<IN, T>): PreetyPattern<IN, T1>(), PatternWrapperKind<IN, T> {
   abstract fun wrap(item: Pattern<IN, T>): ConvertPatternWrapper<IN, T, T1>
-  override fun toPreetyDoc(): PP = item.toPreetyDoc()
+  override fun toPreetyDoc() = item.toPreetyDoc()
 }
 
 abstract class PatternWrapper<IN, T>(item: Pattern<IN, T>): ConvertPatternWrapper<IN, T, T>(item) {

@@ -50,7 +50,7 @@ open class SliceFeed<T>(private val slice: Slice<T>): PreetyFeed<T>() {
   override fun consume() = try { slice[position++] }
     catch (_: IndexOutOfBoundsException) { --position; throw Feed.End() }
 
-  override fun toPreetyDoc(): PP = "Slice".preety() + listOf(peek.rawPreety(), viewport(slice)).joinText("...").surroundText(parens)
+  override fun toPreetyDoc() = "Slice".preety() + listOf(peek.rawPreety(), viewport(slice)).joinText("...").surroundText(parens)
   protected open fun viewport(slice: Slice<T>): PP
     = (position.inbound()..(position+10).inbound()).map(slice::get)
       .let { items -> items.preety().joinText(if (items.all { it is Char }) "" else ", ") }
@@ -73,7 +73,7 @@ abstract class StreamFeed<T, BUF, STREAM>(private val stream: STREAM): PreetyFee
     else if (!tailConsumed) tailConsumed = true
     else throw Feed.End()
   }
-  override fun toPreetyDoc(): PP = "Stream".preety() + listOf(peek.rawPreety(), stream.preety()).joinText("...").surroundText(parens)
+  override fun toPreetyDoc() = "Stream".preety() + listOf(peek.rawPreety(), stream.preety()).joinText("...").surroundText(parens)
 }
 
 //// == Stream Feeds ==

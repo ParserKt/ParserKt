@@ -22,7 +22,7 @@ abstract class SatisfyPattern<IN>: PreetyPattern<IN, IN>(), MonoPattern<IN> {
   }
   class Negate<IN>(val self: SatisfyPattern<IN>): SatisfyPattern<IN>() {
     override fun test(value: IN) = !self.test(value)
-    override fun toPreetyDoc(): PP = self.preety().let { "!".preety() + if (self is LogicalConcat<*>) it.surroundText(parens) else it }
+    override fun toPreetyDoc() = self.preety().let { "!".preety() + if (self is LogicalConcat<*>) it.surroundText(parens) else it }
   }
 }
 

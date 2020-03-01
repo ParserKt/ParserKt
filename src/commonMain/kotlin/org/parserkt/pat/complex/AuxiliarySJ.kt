@@ -26,7 +26,7 @@ class SurroundBy<IN, SURR, T>(val surround: SurroundPair<IN, SURR>, item: Patter
     rightV?.let { right!!.show(s, it) }
   }
   override fun wrap(item: Pattern<IN, T>) = SurroundBy(surround, item)
-  override fun toPreetyDoc(): PP = item.preety().surround(surround.first.preetyOrNone() to surround.second.preetyOrNone())
+  override fun toPreetyDoc() = item.preety().surround(surround.first.preetyOrNone() to surround.second.preetyOrNone())
 }
 
 //// == Surround Shorthands ==
@@ -39,7 +39,7 @@ typealias DoubleList<A, B> = Tuple2<List<A>, List<B>>
 open class JoinBy<IN, SEP, ITEM>(val sep: Pattern<IN, SEP>, override val item: Pattern<IN, ITEM>): PreetyPattern<IN, DoubleList<ITEM, SEP>>(),
     PatternWrapperKind<IN, ITEM> {
   protected open fun rescue(s: Feed<IN>, doubleList: DoubleList<ITEM, SEP>): ITEM? = notParsed.also { s.error("expecting item for last seprator $sep") }
-  override fun toPreetyDoc(): PP = listOf(item, sep).preety().joinText("...").surroundText(braces)
+  override fun toPreetyDoc() = listOf(item, sep).preety().joinText("...").surroundText(braces)
 
   override fun read(s: Feed<IN>): DoubleList<ITEM, SEP>? {
     val items: MutableList<ITEM> = mutableListOf()

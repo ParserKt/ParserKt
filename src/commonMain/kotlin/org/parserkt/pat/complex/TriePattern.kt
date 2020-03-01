@@ -14,7 +14,7 @@ class MapPattern<K, V>(val map: Map<K, V>, private val noKey: Feed<K>.(K) -> V? 
   }
   override fun show(s: Output<K>, value: V?) { if (value != null) reverseMap[value]?.let(s) }
   private val reverseMap = map.reversedMap()
-  override fun toPreetyDoc(): PP = listOf("map", map).preety().colonParens()
+  override fun toPreetyDoc() = listOf("map", map).preety().colonParens()
 }
 
 /*
@@ -37,7 +37,7 @@ open class TriePattern<K, V>: Trie<K, V>(), Pattern<K, V> {
     reverseMap[value]?.let { it.forEach(s) }
   }
   private val reverseMap by lazy { toMap().reversedMap() }
-  override fun toPreetyDoc(): PP = super.toString().preety()
+  override fun toPreetyDoc() = super.toString().preety()
 
   protected open fun onItem(value: K) {}
   protected open fun onSuccess(value: V) {}

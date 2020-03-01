@@ -50,10 +50,10 @@ abstract class PreetyAny: Preety {
 
 typealias PP = Preety.Doc
 
-fun Any?.preetyOr(defaultValue: PP) = if (this == null) defaultValue else Preety.Doc.Text(this)
+fun Any?.preetyOr(defaultValue: PP): PP = if (this == null) defaultValue else Preety.Doc.Text(this)
 fun Any?.preetyOrNone() = preetyOr(Preety.Doc.None)
 fun Any?.preety() = preetyOr(Preety.Doc.Null)
-fun Iterable<*>.preety() = map(Any?::preety)
+fun Iterable<*>.preety(): List<PP> = map(Any?::preety)
 
 fun PP.surround(lr: MonoPair<PP>): PP = Preety.Doc.SurroundBy(lr, this)
 fun List<PP>.join(sep: PP): PP = Preety.Doc.JoinBy(sep, this)
@@ -74,10 +74,12 @@ infix fun String.paired(other: String) = MonoPair(this, other)
 fun String.monoPaired() = this paired this
 val parens = "(" paired ")"
 val squares = "[" paired "]"
+val angles = "<" paired ">"
 val braces = "{" paired "}"
-val quotes = "'" paired "'"
-val dquotes = "\"" paired "\""
-val bquotes = "`" paired "`"
+val quotes = "'".monoPaired()
+val dquotes = "\"".monoPaired()
+val bquotes = "`".monoPaired()
+val bquoted = "`" paired "'"
 
 //// == Raw Strings ==
 fun CharSequence.prefixTranslate(map: Map<Char, Char>, prefix: String)
