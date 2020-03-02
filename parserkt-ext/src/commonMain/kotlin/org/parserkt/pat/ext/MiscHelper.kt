@@ -37,6 +37,14 @@ fun asDouble(integral: Long) = object: AsFloating<Double>(integral) {
   override tailrec fun fraction(n: Double): Double = if (n < 1.0) n else fraction(n / radix)
 }
 
+//// == asCount, asMap == (T is Any? so Fold<in *, R> will accept them)
+fun asCount(): Fold<Any?, Cnt> = ConvertJoinFold(0) { _ -> inc() }
+
+fun <K, V> asMap(): Fold<Pair<K, V>, Map<K, V>> = object: EffectFold<Pair<K, V>, MutableMap<K, V>, Map<K, V>>() {
+  override fun makeBase(): MutableMap<K, V> = mutableMapOf()
+  override fun onAccept(base: MutableMap<K, V>, value: Pair<K, V>) { base[value.first] = value.second }
+}
+
 //// == Frequently used Parser Rules ==
 typealias ClamlyFormat = AllFeed.(MonoPair<CharSatisfyEqualTo>) -> String
 abstract class LexicalBasics {

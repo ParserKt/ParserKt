@@ -51,13 +51,18 @@ open class ConvertJoinFold<T, R>(override val initial: R, private val append: R.
 }
 class JoinFold<T>(initial: T, append: T.(T) -> T): ConvertJoinFold<T, T>(initial, append)
 
-//// == asList & asString ==
+//// == asConstant, asList & asString ==
 abstract class AsListAccept<T, A>: EffectFold<T, MutableList<A>, List<A>>() {
   override fun makeBase(): MutableList<A> = mutableListOf()
 }
 abstract class AsStringBuild<T>: ConvertFold<T, StringBuilder, String>() {
   override val initial get() = StringBuilder()
   override fun convert(base: StringBuilder) = base.toString()
+}
+
+fun <T> asConstant(value: T): Fold<Any?, T> = object: EffectFold<Any?, T, T>() {
+  override fun makeBase() = value
+  override fun onAccept(base: T, value: Any?) {}
 }
 
 fun <T> asList() = object: AsListAccept<T, T>() {
