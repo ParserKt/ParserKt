@@ -49,7 +49,7 @@ fun <IN: Comparable<IN>> elementIn(range: ClosedRange<IN>) = object: SatisfyPatt
 }
 fun elementIn(vararg ranges: CharRange) = object: SatisfyPattern<Char>() {
   override fun test(value: Char) = ranges.any { range -> value in range }
-  override fun toPreetyDoc() = ranges.map(::toDashPreety).join(Preety.Doc.None).surroundText(squares)
+  override fun toPreetyDoc() = ranges.map(::toDashPreety).joinNone().surroundText(squares)
   private fun toDashPreety(r: CharRange) = listOf(r.first, r.last).preety().joinText("-")
 }
 

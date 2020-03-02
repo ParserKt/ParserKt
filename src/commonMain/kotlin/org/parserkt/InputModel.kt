@@ -20,7 +20,7 @@ data class SourceLocation(val file: String, var line: Cnt, var column: Cnt, var 
   val tag get() = listOf(file, line, column).preety().joinText(":")
   fun clone() = copy(file = file, line = line, column = column, position = position)
 
-  override fun toPreetyDoc() = tag + ("#".preety() + position)
+  override fun toPreetyDoc() = listOf(tag, "#".preety() + position).joinText(" ")
   override fun toString() = toPreetyDoc().toString()
 }
 
@@ -43,7 +43,7 @@ open class Input<T>(protected val feed: Feed<T>): PreetyFeed<T>(), ErrorListener
 
   override val peek get() = feed.peek
   override fun consume() = feed.consume().also(::onItem)
-  override fun toPreetyDoc() = "Input".preety() + ":" + feed.toPreetyDoc()
+  override fun toPreetyDoc() = ("Input".preety() + ":") + feed.toPreetyDoc()
 }
 
 open class CharInput(feed: Feed<Char>, file: String): Input<Char>(feed), SourceLocated {
@@ -63,7 +63,7 @@ open class CharInput(feed: Feed<Char>, file: String): Input<Char>(feed), SourceL
   private fun newLine() { ++sourceLoc.line; sourceLoc.column = 0 }
 
   override val sourceLoc = SourceLocation(file)
-  override fun toPreetyDoc() = super.toPreetyDoc() + ":" + sourceLoc.preety()
+  override fun toPreetyDoc() = (super.toPreetyDoc() + ":") + sourceLoc.preety()
 
   companion object Companion
   inner class OnItem(private val onItem: Consumer<Char>): CharInput(feed, sourceLoc.file) {
