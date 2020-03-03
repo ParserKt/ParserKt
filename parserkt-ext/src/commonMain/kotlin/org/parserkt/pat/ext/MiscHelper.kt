@@ -134,7 +134,7 @@ open class TextPattern<T>(item: Pattern<Char, String>, val regex: Regex, val tra
 }
 
 /** Old-style lexer-parser token stream split by [tokenizer], end by [eof] */
-abstract class LexerFeed<TOKEN>(feed: Feed<Char>): StreamFeed<TOKEN, TOKEN?, Feed<Char>>(feed) {
+abstract class LexerFeed<TOKEN>(private val feed: Feed<Char>): StreamFeed<TOKEN, TOKEN?, Feed<Char>>(feed) {
   abstract fun tokenizer(): Pattern<Char, TOKEN>
   protected abstract val eof: TOKEN
 
@@ -143,9 +143,13 @@ abstract class LexerFeed<TOKEN>(feed: Feed<Char>): StreamFeed<TOKEN, TOKEN?, Fee
     override fun next() = token.read(stream)
     override fun hasNext() = nextOne != notParsed
   }
-  override fun convert(buffer: TOKEN?) = buffer ?: eof
+  override fun convert(buffer: TOKEN?) = buffer ?: eof.also { checkActualEOF() }
   override fun consume(): TOKEN {
     if (nextOne == null) throw Feed.End()
     else return super.consume()
+  }
+
+  protected open fun checkActualEOF() {
+    if (!feed.isStickyEnd()) feed.error("lexer failed at here")
   }
 }

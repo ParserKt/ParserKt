@@ -2,11 +2,12 @@ package org.parserkt.util
 
 // File: util/NumEqualize
 // NumEqualize can make +-*/ ops avaliable for all Number instances
-typealias EqualizedOps = Lift<*>
+typealias EqualizedOps = LiftNumOps<*>
 typealias EqualizedOp = EqualizedOps.(Number, Number) -> Number
+typealias EqualizedOpCmp = EqualizedOps.(Number, Number) -> Boolean
 
 /** Lift [Number] subclass operations to [Number]'s operations, using [NumOps.from] and [NumOps.to] function */
-open class Lift<NUM: Comparable<NUM>>(private val ops: NumOps<NUM>): BasicNumOps<Number> {
+open class LiftNumOps<NUM: Comparable<NUM>>(private val ops: NumOps<NUM>): BasicNumOps<Number> {
   private operator fun Number.unaryPlus() = ops.from(this)
   private fun NUM.coerce() = ops.to(this)
   override val zero = ops.zero.coerce()
@@ -22,6 +23,7 @@ open class Lift<NUM: Comparable<NUM>>(private val ops: NumOps<NUM>): BasicNumOps
   fun greaterThan(b: Number, a: Number) = +a > +b
 }
 
+/** A utility balancing type of two [Number] instances, using [numberLevel] & [opsForLevel] & [balance] */
 open class NumEqualize {
   /** Gets priority ordinal for [n]. If is floating, return negative */
   protected open fun numberLevel(n: Number) = when {
@@ -35,8 +37,16 @@ open class NumEqualize {
   }
   protected open fun opsForLevel(level: Int): EqualizedOps = opsMap.getValue(level)
 
+  /** Fold two levels, merge them into one */
+  protected open fun balance(level_b: Int, level_a: Int): Int {
+    fun family(level: Int) = if (level < 0) "real" else "int"
+    require(level_b * level_a >= 0) {"incompatible number families (${family(level_b)} $level_b vs. ${family(level_a)} $level_a)"}
+    return kotlin.math.min(level_b, level_a)
+  }
+
+  //// Helper for making level-ops map
   protected fun <N: Comparable<N>> makeOpsMap(ops: Iterable<NumOps<N>>)
-  = ops.associate { numberLevel(it.zeroNum) to Lift(it) }
+    = ops.associate { numberLevel(it.zeroNum) to LiftNumOps(it) }
 
   protected val <NUM> BasicNumOps<NUM>.zeroNum: Number get() = this.to(zero)
 
@@ -46,12 +56,6 @@ open class NumEqualize {
     //^ N: Comparable<N>, dirty workaround for inconsistent N (Int, Long, Float, ...)
   private val opsMap = makeOpsMap(opsList<Int>())
 
-  /** Fold two levels, merge them into one */
-  protected open fun balance(level_b: Int, level_a: Int): Int {
-    fun family(level: Int) = if (level < 0) "real" else "int"
-    require(level_b * level_a >= 0) {"incompatible number families (${family(level_b)} $level_b vs. ${family(level_a)} $level_a)"}
-    return kotlin.math.min(level_b, level_a)
-  }
 
   //// Merge all operations using numberLevel & balance & opsForLevel!
   protected inline fun balanced(join: EqualizedOp, b: Number, a: Number): Number {
@@ -59,7 +63,7 @@ open class NumEqualize {
     val unifiedOps = opsForLevel(unifiedLevel)
     return unifiedOps.join(b, a)
   }
-  protected inline fun balancedCmp(join: EqualizedOps.(Number, Number) -> Boolean, b: Number, a: Number): Boolean {
+  protected inline fun balancedCmp(join: EqualizedOpCmp, b: Number, a: Number): Boolean {
     val unifiedLevel = balance(numberLevel(b), numberLevel(a))
     val unifiedOps = opsForLevel(unifiedLevel)
     return unifiedOps.join(b, a)
