@@ -4,6 +4,11 @@ import org.parserkt.*
 import org.parserkt.util.*
 
 // File: pat/AtomIES
+// "IES"
+// item(), item(value)
+// elementIn(vararg values), elementIn(ClosedRange), elementIn(vararg ranges: CharRange)
+// satisfy(predicate), StickyEnd
+
 abstract class SatisfyPattern<IN>: PreetyPattern<IN, IN>(), MonoPattern<IN> {
   abstract fun test(value: IN): Boolean
 

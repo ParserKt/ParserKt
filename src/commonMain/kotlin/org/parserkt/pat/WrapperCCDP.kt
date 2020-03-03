@@ -12,10 +12,6 @@ import org.parserkt.util.*
 // Deferred(item: Producer<Pattern<IN, R>>)
 // Piped(item, op)
 
-// Tuple patterns: flatten()
-//   + merge first/second (op)
-//   + discard first/second ()
-
 data class ConvertAs<T1, T>(val from: (T) -> T1, val to: (T1) -> T?) {
   interface Box<T> { val v: T }
 }
@@ -61,27 +57,3 @@ class Piped<IN, T>(item: Pattern<IN, T>, val op: Feed<IN>.(T?) -> T? = {it}): Pa
   override fun wrap(item: Pattern<IN, T>) = Piped(item, op)
   override fun toPreetyDoc() = listOf("Piped", item).preety().colonParens()
 }
-
-// Tuple2: flatten(), mergeFirst(first: (B) -> A), mergeSecond(second: (A) -> B)
-/* val i2 = Seq(::IntTuple, *Contextual(item<Int>()) { item(it) }.flatten().items()) */
-
-fun <IN, A, B> Pattern<IN, Tuple2<A, B>>.flatten(): Pair<Pattern<IN, A>, Pattern<IN, B>> {
-  val item = this; var parsed: Tuple2<A, B>? = null
-  val part1: Pattern<IN, A> = object: PreetyPattern<IN, A>() {
-    override fun read(s: Feed<IN>) = item.read(s).also { parsed = it }?.first
-    override fun show(s: Output<IN>, value: A?) {}
-    override fun toPreetyDoc() = item.toPreetyDoc()
-  }
-  val part2: Pattern<IN, B> = object: PreetyPattern<IN, B>() {
-    override fun read(s: Feed<IN>) = parsed?.second
-    override fun show(s: Output<IN>, value: B?) = item.show(s, parsed)
-    override fun toPreetyDoc() = "#2".preety()
-  }
-  return Pair(part1, part2)
-}
-
-fun <IN, A, B> Pattern<IN, Tuple2<A, B>>.mergeFirst(first: (B) -> A) = Convert(this, { it.second }, { Tuple2(first(it), it) })
-fun <IN, A, B> Pattern<IN, Tuple2<A, B>>.mergeSecond(second: (A) -> B) = Convert(this, { it.first }, { Tuple2(it, second(it)) })
-
-fun <IN, A, B> Pattern<IN, Tuple2<A, B>>.discardFirst() = Convert(this) { it.second }
-fun <IN, A, B> Pattern<IN, Tuple2<A, B>>.discardSecond() = Convert(this) { it.first }

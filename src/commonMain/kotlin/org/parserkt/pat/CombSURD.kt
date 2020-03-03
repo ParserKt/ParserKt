@@ -19,6 +19,7 @@ class SingleFeed<T>(val value: T): Feed<T> {
     (if (valueConsumed) ".".preety() else Preety.Doc.None)
 }
 
+
 /** Pattern of "folded" items, like [Until], [Repeat]. exceptions terminates read with [notParsed] */
 abstract class FoldPattern<IN, T, R>(val fold: Fold<T, R>, override val item: Pattern<IN, T>): PreetyPattern<IN, R>(), PatternWrapperKind<IN, T> {
   protected open fun unfold(value: R): Iterable<T> = defaultUnfold(value)
@@ -49,6 +50,7 @@ class Seq<IN, T, TUPLE: Tuple<T>>(val type: (Cnt) -> TUPLE, vararg val items: Pa
   }
   override fun show(s: Output<IN>, value: TUPLE?) {
     if (value == null) return
+    require(value.size == items.size) {"bad tuple-show size (${value.size}, not ${items.size})"}
     for ((i, v) in value.toArray().withIndex())
       @Suppress("unchecked_cast") (items[i] as Pattern<IN, in @UnsafeVariance T>).show(s, v)
   }
@@ -121,7 +123,7 @@ class Decide<IN, T>(vararg val cases: Pattern<IN, out T>): PreetyPattern<IN, Tup
   override fun toPreetyDoc() = cases.asIterable().preety().joinText("|").surroundText(parens)
 }
 
-// "rebuild" - UntilUn(+unfold), RepeatUn(+unfold)
+// "rebuild" — UntilUn(+unfold), RepeatUn(+unfold)
 
 class UntilUn<IN, T, R>(terminate: ConstantPattern<IN, T>, fold: Fold<T, R>, item: Pattern<IN, T>, private val unfold: (R) -> Iterable<T>): Until<IN, T, R>(terminate, fold, item) {
   override fun unfold(value: R) = unfold.invoke(value)
@@ -129,19 +131,3 @@ class UntilUn<IN, T, R>(terminate: ConstantPattern<IN, T>, fold: Fold<T, R>, ite
 class RepeatUn<IN, T, R>(fold: Fold<T, R>, item: Pattern<IN, T>, private val unfold: (R) -> Iterable<T>): Repeat<IN, T, R>(fold, item) {
   override fun unfold(value: R) = unfold.invoke(value)
 }
-
-// "IES"
-// item(), item(value)
-// elementIn(vararg values), elementIn(ClosedRange), elementIn(vararg ranges: CharRange)
-// satisfy(predicate), StickyEnd
-
-fun <T> MonoPair<T>.toPat(): MonoPair<SatisfyEqualTo<T>> = map(::item)
-fun MonoPair<String>.toCharPat(): MonoPair<SatisfyEqualTo<Char>> = map(String::single).toPat()
-fun MonoPattern<Char>.toStringPat() = Convert(this, Char::toString, String::first)
-
-fun <IN> Pattern<IN, Int>.toLongPat() = Convert(this, Int::toLong, Long::toInt)
-fun Seq<Char, Char, CharTuple>.toStringPat() = Convert(this, { it.toArray().joinToString("") }, { tupleOf(::CharTuple, *it.toList().toArray()) })
-
-/* val str = Seq(::StringTuple, item('"').toStringPat(), *anyChar until item('"')) */
-infix fun MonoPattern<Char>.until(terminate: MonoPattern<Char>)
-  = arrayOf<Pattern<Char, String>>(Until(terminate, asString(), this), terminate.toStringPat())

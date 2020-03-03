@@ -45,6 +45,14 @@ fun <K, V> asMap(): Fold<Pair<K, V>, Map<K, V>> = object: EffectFold<Pair<K, V>,
   override fun onAccept(base: MutableMap<K, V>, value: Pair<K, V>) { base[value.first] = value.second }
 }
 
+//// == Pattern toLong, toPair ==
+fun <IN> Pattern<IN, Int>.toLongPat() = Convert(this, Int::toLong, Long::toInt)
+
+fun <IN, T, TUPLE: Tuple<T>> Seq<IN, T, TUPLE>.toPairPat(type: (Cnt) -> TUPLE): Pattern<IN, MonoPair<T>> {
+  require(items.size == 2) {"2 items for a pair"}
+  return Convert(this, { it[0] to it[1] }, { tupleOf(type, it.first, it.second) })
+}
+
 //// == Frequently used Parser Rules ==
 typealias ClamlyFormat = AllFeed.(MonoPair<CharSatisfyEqualTo>) -> String
 abstract class LexicalBasics {

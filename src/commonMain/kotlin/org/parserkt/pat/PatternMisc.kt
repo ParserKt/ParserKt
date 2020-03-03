@@ -4,7 +4,7 @@ import org.parserkt.*
 import org.parserkt.util.*
 
 // File: pat/PatternMisc
-// Error-handling & Stated-Feed
+// Error-handling (clam) & Stated-Feed (alsoDo)
 
 //// == Error Handling (addErrorList, clamWhile, clam) ==
 // Input.addErrorList(): Pair<List<BoundError>, Input>
