@@ -143,13 +143,9 @@ abstract class LexerFeed<TOKEN>(private val feed: Feed<Char>): StreamFeed<TOKEN,
     override fun next() = token.read(stream)
     override fun hasNext() = nextOne != notParsed
   }
-  override fun convert(buffer: TOKEN?) = buffer ?: eof.also { checkActualEOF() }
-  override fun consume(): TOKEN {
-    if (nextOne == null) throw Feed.End()
-    else return super.consume()
-  }
+  override fun convert(buffer: TOKEN?) = buffer ?: eof.also { onEOF() }
 
-  protected open fun checkActualEOF() {
+  protected open fun onEOF() {
     if (!feed.isStickyEnd()) feed.error("lexer failed at here")
   }
 }
