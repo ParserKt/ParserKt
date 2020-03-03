@@ -45,12 +45,6 @@ abstract class LexicalBasics {
     = JoinBy(this, item).mergeConstantJoin().toDefault(emptyList()).tokenize()
 
   companion object Helper {
-    fun itemNocase(char: Char) = elementIn(char.toUpperCase(), char).toConstant(char)
-
-    fun <V> Trie<Char, V>.getOrCreatePathsNocase(key: CharSequence) = getOrCreatePaths(key.asIterable()) { listOf(it.toUpperCase(), it.toLowerCase()) }
-    fun <V> Trie<Char, V>.setNocase(key: CharSequence, value: V) = getOrCreatePathsNocase(key).forEach { it.value = value }
-    fun <V> Trie<Char, V>.mergeStringsNocase(vararg kvs: Pair<CharSequence, V>) { for ((k, v) in kvs) this.setNocase(k, v) }
-
     private val clamlyFormat: ClamlyFormat = { pair ->
       val fromTag = stateAs<ExpectClose>()?.remove(pair)?.let {" (from ${it.tag})"} ?: ""
       "expecting ${pair.second}$fromTag"
@@ -76,12 +70,6 @@ abstract class LexicalBasics {
 
     val newlineChar = elementIn('\r', '\n') named "newline"
     val singleLine = suffix1(newlineChar, anyChar)
-
-    /** Make definitions like `inline fun <reified T> term() = itemTyped<T, TOKEN>()` */
-    inline fun <reified T, T0> itemTyped(crossinline predicate: Predicate<T> = {true}) where T: T0 = object: SatisfyPattern<T0>() {
-      override fun test(value: T0) = value is T && predicate(value)
-      override fun toPreetyDoc() = T::class.preety().surroundText(parens)
-    }
   }
 
   open class ExpectClose {
@@ -90,3 +78,15 @@ abstract class LexicalBasics {
     fun remove(id: Any): SourceLocation = map.getValue(id).removeLast()
   }
 }
+
+fun itemNocase(char: Char) = elementIn(char.toUpperCase(), char).toConstant(char)
+
+fun <V> Trie<Char, V>.getOrCreatePathsNocase(key: CharSequence) = getOrCreatePaths(key.asIterable()) { listOf(it.toUpperCase(), it.toLowerCase()) }
+fun <V> Trie<Char, V>.setNocase(key: CharSequence, value: V) = getOrCreatePathsNocase(key).forEach { it.value = value }
+fun <V> Trie<Char, V>.mergeStringsNocase(vararg kvs: Pair<CharSequence, V>) { for ((k, v) in kvs) this.setNocase(k, v) }
+
+/** Make definitions like `inline fun <reified T> term() = itemTyped<T, TOKEN>()` */
+inline fun <reified T: T0, T0> itemTyped(crossinline predicate: Predicate<T> = {true}): MonoPatternWrapper<T0, T> = object: SatisfyPattern<T0>() {
+  override fun test(value: T0) = value is T && predicate(value)
+  override fun toPreetyDoc() = T::class.preety().surroundText(parens)
+}.let { pat -> Convert(pat, { it as T }, {it}) }
