@@ -57,6 +57,7 @@ abstract class LexicalBasics {
     //// == Pattern Templates ==
     fun digitFor(cs: CharRange, zero: Char = '0', pad: Int = 0): Convert<Char, Char, Int>
       = Convert(elementIn(cs), { (it - zero) +pad }, { zero + (it -pad) })
+
     fun stringFor(char: CharPattern) = Repeat(asString(), char).Many()
     fun stringFor(char: CharPattern, surround: MonoPair<CharPattern>): Pattern<Char, StringTuple> {
       val terminate = surround.second.toStringPat()
@@ -81,7 +82,7 @@ abstract class LexicalBasics {
 
 fun itemNocase(char: Char) = elementIn(char.toUpperCase(), char).toConstant(char)
 
-fun <V> Trie<Char, V>.getOrCreatePathsNocase(key: CharSequence) = getOrCreatePaths(key.asIterable()) { listOf(it.toUpperCase(), it.toLowerCase()) }
+internal fun <V> Trie<Char, V>.getOrCreatePathsNocase(key: CharSequence) = getOrCreatePaths(key.asIterable()) { listOf(it.toUpperCase(), it.toLowerCase()) }
 fun <V> Trie<Char, V>.setNocase(key: CharSequence, value: V) = getOrCreatePathsNocase(key).forEach { it.value = value }
 fun <V> Trie<Char, V>.mergeStringsNocase(vararg kvs: Pair<CharSequence, V>) { for ((k, v) in kvs) this.setNocase(k, v) }
 
@@ -89,4 +90,4 @@ fun <V> Trie<Char, V>.mergeStringsNocase(vararg kvs: Pair<CharSequence, V>) { fo
 inline fun <reified T: T0, T0> itemTyped(crossinline predicate: Predicate<T> = {true}): MonoPatternWrapper<T0, T> = object: SatisfyPattern<T0>() {
   override fun test(value: T0) = value is T && predicate(value)
   override fun toPreetyDoc() = T::class.preety().surroundText(parens)
-}.let { pat -> Convert(pat, { it as T }, {it}) }
+}.let { pat -> Convert(pat, { it as T }, { it as T0 }) }

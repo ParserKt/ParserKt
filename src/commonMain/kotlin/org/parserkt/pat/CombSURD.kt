@@ -56,7 +56,7 @@ class Seq<IN, T, TUPLE: Tuple<T>>(val type: (Cnt) -> TUPLE, vararg val items: Pa
   }
   private fun checkedTuple(): TUPLE {
     val tuple = type(items.size)
-    require(tuple.size >= items.size) {"tuple size too small (${tuple.size} for ${items.size})"}
+    require(tuple.size >= items.size) {"tuple size too small (${tuple.size} for ${items.size})"} // lesser strict
     return tuple
   }
   override fun toPreetyDoc() = items.asIterable().preety().joinText(" ").surroundText(parens)
