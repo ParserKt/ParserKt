@@ -13,38 +13,6 @@ typealias CharConstantPattern = MonoConstantPattern<Char>
 
 typealias CharSatisfyEqualTo = SatisfyEqualTo<Char>
 
-//// == Fold for number I/L/F/D ==
-fun asInt(radix: Int = 10, initial: Int = 0) = JoinFold(initial) { this*radix + it }
-fun asLong(radix: Int = 10, initial: Long = 0L): Fold<Int, Long> = ConvertJoinFold(initial) { this*radix + it }
-
-abstract class AsFloating<NUM: Comparable<NUM>>(val integral: Long): ConvertFold<Int, Long, NUM>() {
-  override val initial = 0L
-  override fun join(base: Long, value: Int) = base*radix + value
-  override fun convert(base: Long) = op.run { plus(integral.let(::from), fraction(base.let(::from)) ) }
-
-  protected abstract val op: NumOps<NUM>
-  /** Make 0.2333 from ([NUM]) 2333.0 */
-  protected abstract fun fraction(n: NUM): NUM
-  protected open val radix = 10
-}
-
-fun asFloat(integral: Long) = object: AsFloating<Float>(integral) {
-  override val op = FloatOps
-  override tailrec fun fraction(n: Float): Float = if (n < 1.0F) n else fraction(n / radix)
-}
-fun asDouble(integral: Long) = object: AsFloating<Double>(integral) {
-  override val op = DoubleOps
-  override tailrec fun fraction(n: Double): Double = if (n < 1.0) n else fraction(n / radix)
-}
-
-//// == asCount, asMap == (T is Any? so Fold<in *, R> will accept them)
-fun asCount(): Fold<Any?, Cnt> = ConvertJoinFold(0) { _ -> inc() }
-
-fun <K, V> asMap(): Fold<Pair<K, V>, Map<K, V>> = object: EffectFold<Pair<K, V>, MutableMap<K, V>, Map<K, V>>() {
-  override fun makeBase(): MutableMap<K, V> = mutableMapOf()
-  override fun onAccept(base: MutableMap<K, V>, value: Pair<K, V>) { base[value.first] = value.second }
-}
-
 //// == Pattern toLong, toPair ==
 fun <IN> Pattern<IN, Int>.toLongPat() = Convert(this, Int::toLong, Long::toInt)
 
@@ -109,6 +77,7 @@ abstract class LexicalBasics {
     val newlineChar = elementIn('\r', '\n') named "newline"
     val singleLine = suffix1(newlineChar, anyChar)
 
+    /** Make definitions like `inline fun <reified T> term() = itemTyped<T, TOKEN>()` */
     inline fun <reified T, T0> itemTyped(crossinline predicate: Predicate<T> = {true}) where T: T0 = object: SatisfyPattern<T0>() {
       override fun test(value: T0) = value is T && predicate(value)
       override fun toPreetyDoc() = T::class.preety().surroundText(parens)
@@ -119,33 +88,5 @@ abstract class LexicalBasics {
     private val map: MutableMap<Any, MutableList<SourceLocation>> = mutableMapOf()
     fun add(id: Any, sourceLoc: SourceLocation) { map.getOrPut(id, ::mutableListOf).add(sourceLoc) }
     fun remove(id: Any): SourceLocation = map.getValue(id).removeLast()
-  }
-}
-
-//// == Old-style Parsing (Regex TextPattern, LexerFeed) ==
-
-/** Pattern for reading with [Regex], input string is taken by [item] from [Feed] stream */
-open class TextPattern<T>(item: Pattern<Char, String>, val regex: Regex, val transform: (List<String>) -> T): ConvertPatternWrapper<Char, String, T>(item) {
-  constructor(regex: Regex, transform: (List<String>) -> T): this(LexicalBasics.singleLine, regex, transform)
-  override fun read(s: Feed<Char>): T? = item.read(s)?.let { regex.find(it)?.groupValues?.let(transform) }
-  override open fun show(s: Output<Char>, value: T?) {}
-  override fun wrap(item: Pattern<Char, String>) = TextPattern(item, regex, transform)
-  override fun toPreetyDoc() = item.toPreetyDoc() + regex.preety().surroundText("/" to "/")
-}
-
-/** Old-style lexer-parser token stream split by [tokenizer], end by [eof] */
-abstract class LexerFeed<TOKEN>(private val feed: Feed<Char>): StreamFeed<TOKEN, TOKEN?, Feed<Char>>(feed) {
-  abstract fun tokenizer(): Pattern<Char, TOKEN>
-  protected abstract val eof: TOKEN
-
-  override fun bufferIterator(stream: Feed<Char>) = object: Iterator<TOKEN?> {
-    private val token = tokenizer()
-    override fun next() = token.read(stream)
-    override fun hasNext() = nextOne != notParsed
-  }
-  override fun convert(buffer: TOKEN?) = buffer ?: eof.also { onEOF() }
-
-  protected open fun onEOF() {
-    if (!feed.isStickyEnd()) feed.error("lexer failed at here")
   }
 }

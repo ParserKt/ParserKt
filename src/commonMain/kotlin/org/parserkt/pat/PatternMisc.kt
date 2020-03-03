@@ -46,8 +46,9 @@ class SatisfyEqualToClam<IN>(override val self: SatisfyEqualTo<IN>, messager: Er
   override val constant get() = self.constant
 }
 
-fun <IN> SatisfyPattern<IN>.clam(messager: ErrorMessager = {"expecting ${this@clam}"}) = SatisfyClam(this, messager)
-fun <IN> SatisfyEqualTo<IN>.clam(messager: ErrorMessager = {"expecting ${this@clam}"}) = SatisfyEqualToClam(this, messager)
+fun unexpectedMessager(expecting: Any): ErrorMessager = {"unexpected $peek, expecting $expecting"}
+fun <IN> SatisfyPattern<IN>.clam(messager: ErrorMessager = unexpectedMessager(this@clam)) = SatisfyClam(this, messager)
+fun <IN> SatisfyEqualTo<IN>.clam(messager: ErrorMessager = unexpectedMessager(this@clam)) = SatisfyEqualToClam(this, messager)
 
 //// == State & Modify State ==
 
