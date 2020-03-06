@@ -26,7 +26,7 @@ ParserKt is a naive one-pass __recursive descent, scannerless parser__ framework
 
 A parser is a kind of program extracting data from input sequences:
 
-> NOTE: Using REPL from command line is not a good practice, you can <a href="#header">create Gradle project</a> or use IDEA Kotlin REPL.
+> NOTE: Using REPL from command line is not a good practice, you can create a project with <a href="#header">dependency on JitPack</a> or use IDEA Kotlin REPL instead.
 
 ```bash
 git clone https://github.com/ParserKt/ParserKt.git && cd ParserKt
@@ -34,7 +34,7 @@ gradle shadowJar
 kotlinc -cp build/libs/ParserKt-*.jar
 ```
 
-Don't be scared! ParserKt is just a small library, even full-build won't take too much time. (or you can download pre-built [here](https://github.com/ParserKt/ParserKt/releases))
+Don't be scared! ParserKt is just a small library, even full-build won't take too much time. (or you can download pre-built jars [here](https://github.com/ParserKt/ParserKt/releases))
 
 <a id="github-hided"></a>
 
@@ -56,6 +56,8 @@ digits.read("12a3") //[1, 2]
 digits.read("a3") //null //(= notParsed)
 ```
 
+A parser mainly recognize, and transform inputs into a simpler form (like AST) for post-processing (preetify, evaluate, type-check, ...), and it can be used to create (DSL) language tools / compilers / transpilers / interpreters.
+
 ```kotlin
 // Generic parsing for [1, a, b] where (b > a)
 val ints = Seq(::IntTuple, item(1), *Contextual(item<Int>()) { i -> satisfy<Int> { it > i } }.flatten().items() )
@@ -72,11 +74,9 @@ val digitsInt = Repeat(JoinFold(0) { this*10 + it }, digit)
 digitsInt.read("233") //233
 ```
 
-(<a href="#see-more">click here</a> if you want to try out more)
+<small>(<a href="#see-more">click here</a> if you want to try out more)</small>
 
-parser mainly recognize, and transform input into a simpler form (like AST) for post-processing (preetify, evaluate, type-check, ...). and it can be used to create (DSL) language tools / compilers / transpilers / interpreters.
-
-ParserKt divides complex grammar into simple subpart `val` definition, "entry rule" could be all public structure — like `item`, `elementIn`, `Repeat`, and thus it's very easy to debug and to reuse implemented syntax.
+ParserKt divides complex grammar into simple subpart `val` definitions. "entry rule" could be all public structure — like `item`, `elementIn`, `Repeat`, and thus it's very easy to debug, and to reuse implemented syntax.
 
 > What means "one-pass"?
 
@@ -89,7 +89,7 @@ interface Feed<out T> {
 }
 ```
 
-That's all one subparser can see, no mark/reset, not even one character supported for lookahead.
+That's all one subparser can see, no mark/reset, __not even one character supported for lookahead__.
 
 > What means "recursive descent"?
 
@@ -102,14 +102,14 @@ sealed class PlusAst {
 }
 ```
 
-(`sealed class` is just class with determinable subclasses, in it's inner name scope)
+<small>(`sealed class` are just classes with determinable subclass, in their inner name scope)</small>
 
 This data structure implies, every symbol of `a + b` could be an integer (like `0`, `9`, `16`, ...`IntLiteral(n)`), or other `a + b` (`1 + 2`, `9 + 0`, ...`Plus(left, right)`)
 
 `PlusAst` is recursive, so it's best to __implement it's parser in recurse function form__, that's "recursive".
 
 ```bnf
-Plus := Int | (Plus '+' Plus)  ; "left associative"
+Plus := (Plus '+' Plus) | Int  ; left associative
 Int := {[0-9]}
 ```
 
@@ -123,7 +123,7 @@ From rule `Plus` to its subrule `Int`, that's "descent".
 
 ——
 
-ParserKt cannot make any lookaheads, so it's looks like impossible to parse syntax like `//`, `/*`, `0x` `0b` (and error when `0(octal)`).
+ParserKt cannot make any lookaheads, so it's looks like impossible to parse syntax like `//`, `/*`, or `0x` `0b` (and error when `0(octal)`).
 
 In fact, "lookahead" can be stored in _call stack_ of `Pattern.read` by pattern `Contextual`, so write parser for such syntax is possible (but much more complicated, so it's better to create new Pattern subclass, or fall back to tokenizer-parser `LexerFeed`, or use `TriePattern`)
 
@@ -135,29 +135,29 @@ I think combinators must be related to ["functional programming"](https://en.wik
 
 __Parser combinator is mainly about code reuse, parser compiler is mainly about pattern matching algorithms.__
 
-Parser compilers and parser combinators __solve the same problem in different ways__.
+Parser compilers and parser combinators __solves the same problem in different ways__.
 A parser compiler have better portability, and better performance (I'm [not sure](https://sap.github.io/chevrotain/performance/)).
 A parser combinator integrates better with the host language, and it's really easy to write/debug, since it's just hand-wrote program.
 
 For example, keywords about parser compilers:
 [LL(k)](https://en.wikipedia.org/wiki/LL_parser), [LR(k)](https://en.wikipedia.org/wiki/LR_parser), [LALR](https://en.wikipedia.org/wiki/LALR_parser), [NFA](https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton), [DFA](https://en.wikipedia.org/wiki/Deterministic_finite_automaton), [KMP](https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm), [Aho–Corasick](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm)
 
-:fearful: Scared? Recursive descent method are the most popular practice for hand-wrote parser used by many well-known projects like [Lua](https://lua.org), and it's the __best selection for code quality__ — source files generated by parser compilers offen a mess!
+:fearful: Scared? Recursive descent method are the most popular practice of handwriting parser used by many well-known projects like [Lua](https://lua.org), and it's  also the __best choice for code quality__ — source files generated by parser compilers offen a mess!
 
 ## Features
 
-+ Minimal boilerplate code & high-reusability
++ Minimal boilerplate code & high reusability
 + DSL style & fully object-oriented library design
 + __Rebuild parse result back to input__ (REPL friendly)
 + __Generic parsing input__ (Char, String, XXXToken, ...)
 + __One-pass input stream design__ without `hasNext`
 + `ReaderFeed` for __implementating interactive shells__ (JVM only)
-+ The framework manages parsed data in a flexible-also-extensible way (`Tuple2`, Sized-`Tuple`, `Fold`)
-+ __Supports complex contextual syntax structure that cannot be supported directly in parser compilers__ (`LayoutPattern`, `NumUnits`, ...)
++ The framework manages parsed data in a flexible and extensible way (`Tuple2`, Sized-`Tuple`, `Fold`)
++ __Supports complex contextual syntax structure that cannot be supported directly in parser compilers__ (`LayoutPattern`, `NumUnitPattern`, ...)
 + Extensible error messages using `clam {"message"}`, `clamWhile(pat, defaultValue) {"message"}`
 + Parser input stream `Feed` can have state storage: `withState(T)`, `stateAs<T>()`
-+ <500K compiled JVM library, no extra runtime (except kotlin-stdlib, Kotlin sequences are optional) needed
-+ __No magics__, all code are __rewrote at least 9 times__ by author, ugly/ambiguous/orderless codes are removed
++ <500K compiled JVM library, no extra runtime needed (except kotlin-stdlib, Kotlin sequences are optional)
++ __No magics__, all code has been __rewritten at least 9 times__ by the author, ugly/ambiguous/disordered codes are removed
 
 Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility and amazing type inference.
 
@@ -176,7 +176,7 @@ Great thanks to [Kotlin](https://kotlinlang.org/), for its strong expressibility
 + CCDP (Convert, Contextual, Deferred, Piped)
 + SJIT (SurroundBy, JoinBy, InfixPattern, TriePattern)
 
-### More runnable REPL snippet
+### More runnable REPL snippets
 
 <a id="see-more">Note that</a> for frequently-used pattern combinations, we have `org.parserkt.pat.ext`:
 
