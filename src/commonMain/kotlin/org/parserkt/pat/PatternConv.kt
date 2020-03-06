@@ -12,7 +12,7 @@ fun <IN> Seq<IN, Char, CharTuple>.toStringPat() = Convert(this, { it.toArray().j
 
 /* val str = Seq(::StringTuple, item('"').toStringPat(), *anyChar until item('"')) */
 infix fun MonoPattern<Char>.until(terminate: MonoPattern<Char>)
-  = arrayOf<Pattern<Char, String>>(Until(terminate, asString(), this), terminate.toStringPat())
+  = arrayOf<Pattern<Char, String>>(Until(terminate, asString(), this), terminate.toStringPat()) // TODO remove
 
 // Tuple patterns: flatten()
 //   + merge first/second (op)

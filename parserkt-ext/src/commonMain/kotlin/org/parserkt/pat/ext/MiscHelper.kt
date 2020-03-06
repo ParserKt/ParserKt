@@ -59,10 +59,6 @@ abstract class LexicalBasics {
       = Convert(elementIn(cs), { (it - zero) +pad }, { zero + (it -pad) })
 
     fun stringFor(char: CharPattern) = Repeat(asString(), char).Many()
-    fun stringFor(char: CharPattern, surround: MonoPair<CharPattern>): Pattern<Char, StringTuple> {
-      val terminate = surround.second.toStringPat()
-      return Seq(::StringTuple, surround.first.toStringPat(), Until(terminate, asString(), char), terminate)
-    }
 
     fun prefix1(head: CharPattern, item: Pattern<Char, String>) = Convert(Seq(::StringTuple, head.toStringPat(), item),
       { it[0] + it[1] }, { it.run { tupleOf(::StringTuple, take(1), drop(1)) } })
