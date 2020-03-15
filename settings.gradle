@@ -1,16 +1,14 @@
 pluginManagement {
-  repositories { jcenter() }
+  repositories { gradlePluginPortal(); jcenter() }
   def gradlePlugins = [
     "kotlin-multiplatform": "org.jetbrains.kotlin:kotlin-gradle-plugin",
     "com.github.johnrengelman.shadow": "com.github.jengelman.gradle.plugins:shadow"
   ]
 
   resolutionStrategy { eachPlugin {
-      def id = requested.id.id
-      if (gradlePlugins.containsKey(id))
-        useModule("${gradlePlugins[id]}:${requested.version}")
-      else if (id.contains("."))
-        useModule("${id}:${id.split(/\./)[-1]}-gradle-plugin:${requested.version}")
+    def id = requested.id.id
+    if (gradlePlugins.containsKey(id))
+      useModule("${gradlePlugins[id]}:${requested.version}")
   } }
 }
 
