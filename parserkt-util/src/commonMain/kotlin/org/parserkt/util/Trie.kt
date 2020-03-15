@@ -52,7 +52,7 @@ fun <V> Trie<Char, V>.mergeStrings(vararg kvs: Pair<CharSequence, V>) {
   for ((k, v) in kvs) this[k] = v
 }
 
-/** Create multiply route in path to [index], helper for functions like `setNocase` */
+/** Create multiply route in path to [key], helper for functions like `setNocase` */
 fun <K, V> Trie<K, V>.getOrCreatePaths(key: Iterable<K>, layer: (K) -> Iterable<K>): List<Trie<K, V>>
   = key.fold(listOf(this)) { points, k ->
     points.flatMap { point ->
