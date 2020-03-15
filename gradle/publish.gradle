@@ -1,0 +1,67 @@
+import static System.getenv
+def getprop(String name) { return rootProject.properties[name] }
+
+description = "Naive one-pass recursive descent, scannerless parser framework for Kotlin"
+
+task emptySourcesJar(type: Jar) {
+  classifier = "sources"
+}
+
+def projectPomGitHub(String author, String repo, org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication self) {
+self.pom.withXml {
+  def root = asNode()
+  root.children().last() + {
+    resolveStrategy = Closure.DELEGATE_FIRST
+
+    name self.name
+    description rootProject.description
+    url "https://github.com/$repo"
+    licenses {
+      license {
+        name "MIT License"
+        url "https://opensource.org/licenses/mit-license"
+        distribution "repo"
+      }
+    }
+    scm {
+      url "https://github.com/$repo"
+      connection "scm:git:git://github.com/${repo}.git"
+      developerConnection "scm:git:ssh://git@github.com/${repo}.git"
+    }
+    developers {
+      developer { id author; name author }
+    }
+  }
+} } //projectPom
+
+allprojects {
+
+apply plugin: "maven-publish"
+publishing {
+  repositories {
+    maven { name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/ParserKt/ParserKt")
+      credentials { username = getenv("USERNAME"); password = getenv("GITHUB_TOKEN") }
+    }
+    maven { name = "Sonatype"
+      url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+      credentials { username = getprop("nexusUsername"); password = getprop("nexusPassword") }
+    }
+  }
+  afterEvaluate {
+    // Source jars are only created for platforms, not the common artifact.
+    publications.getByName('kotlinMultiplatform') { artifact emptySourcesJar }
+  }
+}
+
+publishing { publications.all {
+  artifact javadocsJar
+  projectPomGitHub("duangsuse", "ParserKt/ParserKt", it)
+} } //publishing
+
+apply plugin: "signing"
+signing {
+  sign publishing.publications
+}
+
+} //allprojects

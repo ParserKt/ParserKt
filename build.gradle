@@ -1,18 +1,14 @@
-import static System.getenv
-
 plugins {
   id "kotlin-multiplatform" version "1.3.61"
   id 'com.github.johnrengelman.shadow' version "5.2.0"
-  id "maven-publish"; id "signing"
+  id "maven-publish"; id("signing")
   id "io.codearte.nexus-staging" version "0.21.2"
   id "org.jetbrains.dokka" version "0.10.1"
 }
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 allprojects {
   group "fun.parser"
-  version "2.5"
+  version "2.6"
 
   apply plugin: "kotlin-multiplatform"
   kotlin { jvm(); js() }
@@ -23,6 +19,7 @@ allprojects {
     kotlinOptions.sourceMap = true
     kotlinOptions.metaInfo = true
   }
+
 
   repositories { jcenter() }
   ext.kotlin = { name -> return "org.jetbrains.kotlin:kotlin-$name:1.3.61" }
@@ -42,10 +39,14 @@ allprojects {
 
 //// == Kotlin & Libs ==
 dokka {
-  def parserKtProjects = rootProject.subprojects.asList().collect { it.name }
   outputFormat = "html"
-  outputDirectory = "$buildDir/dokka"
-  subProjects = parserKtProjects
+  outputDirectory = "$buildDir/dokka/"
+  subProjects = subprojects.asList().collect { it.name }
+}
+
+task javadocsJar(type: Jar, dependsOn: dokka) {
+  group = "jar"; classifier = "javadoc"
+  from dokka.outputDirectory
 }
 
 dependencies {
@@ -53,38 +54,15 @@ dependencies {
 }
 
 //// == Publish ==
-description = "Naive one-pass recursive descent, scannerless parser framework for Kotlin"
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 task shadowJar(type: ShadowJar, dependsOn: [jvmJar]) {
   baseName = "ParserKt"
   manifest {}
 
-  from jvmJar.archiveFile
-  from project("parserkt-util").jvmJar.archiveFile
-  from project("parserkt-ext").jvmJar.archiveFile
+  allprojects.forEach { from it.jvmJar.archiveFile }
   //configurations = [project.configurations.jvmRuntimeClasspath]
 }
 
-def getprop(String name) { return rootProject.properties[name] }
-
-allprojects {
-  apply plugin: "maven-publish"
-  publishing {
-    repositories {
-      maven { name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/ParserKt/ParserKt")
-        credentials { username = getenv("USERNAME"); password = getenv("GITHUB_TOKEN") }
-      }
-      maven { name = "Sonatype"
-        url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-        credentials { username = getprop("nexusUsername"); password = getprop("nexusPassword") }
-      }
-    }
-    publications {}
-  } //publishing
-}
-
-signing {
-  required true
-  sign(publishing.publications)
-}
+def gradleDir = new File(rootProject.projectDir, "gradle")
+apply from: new File(gradleDir, "publish.gradle")

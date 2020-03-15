@@ -1,5 +1,5 @@
 pluginManagement {
-  repositories { gradlePluginPortal(); jcenter() }
+  repositories { jcenter(); gradlePluginPortal() }
   def gradlePlugins = [
     "kotlin-multiplatform": "org.jetbrains.kotlin:kotlin-gradle-plugin",
     "com.github.johnrengelman.shadow": "com.github.jengelman.gradle.plugins:shadow"
@@ -10,7 +10,7 @@ pluginManagement {
     if (gradlePlugins.containsKey(id))
       useModule("${gradlePlugins[id]}:${requested.version}")
   } }
-}
+}  //pluginManagement
 
 rootProject.name = "parserkt"
 enableFeaturePreview("GRADLE_METADATA")
